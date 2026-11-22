@@ -12,8 +12,8 @@ processed (frame extraction, background removal, sprite packing) by the
 project's own tooling. Characters, stages and names are original to this game.
 
 Voices used (ElevenLabs voice library):
-  - Rustam:     "Khair Muhammad" (Urdu)
-  - Baba Sher:  "Amjid ch - Urdu Documentary Narrator pak" (Urdu)
+  - Rustam:     "Alaric - Intense and Measured" (English)
+  - Baba Sher:  "The Doc" (English)
   - Announcer:  "David - Sports Arena Announcer" (English)
 
 Engine

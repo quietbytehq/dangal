@@ -54,6 +54,7 @@ var _last_dir := ""
 var _time := 0.0
 
 # CPU brain state
+var _props_hit: Array = []
 var _cpu_held := {}
 var _cpu_pressed := {}
 var _cpu_timer := 0.0
@@ -170,6 +171,7 @@ func _physics_process(delta: float) -> void:
 	if slide != 0.0:
 		position.x += slide * delta
 		slide = move_toward(slide, 0.0, 1400.0 * delta)
+	_bump_props()
 	_separate_from_opponent()
 	position.x = clamp(position.x, bounds.x, bounds.y)
 
@@ -246,6 +248,7 @@ func _jump_lift() -> float:
 func _start_attack(name: String) -> void:
 	state = name
 	hit_landed = false
+	_props_hit.clear()
 	_play(name, _length(name) / attacks[name]["time"])
 	Sound.sfx("whoosh", -4.0)
 	if name == "jab":
@@ -263,7 +266,15 @@ func _attacking() -> void:
 	var atk: Dictionary = attacks[state]
 	var p := _progress()
 	var active: Vector2 = atk["active"]
-	if hit_landed or p < active.x or p > active.y or opponent == null:
+	if p < active.x or p > active.y or opponent == null:
+		return
+	# attacks also smash stage props
+	var box := get_hitbox(atk["box"])
+	for prop in get_tree().get_nodes_in_group("props"):
+		if not prop.broken and not _props_hit.has(prop) and box.intersects(prop.get_rect()):
+			_props_hit.append(prop)
+			prop.hit(Vector2(facing * float(atk["push"]) * 2.2, -260.0), int(atk["damage"]))
+	if hit_landed:
 		return
 	if get_hitbox(atk["box"]).intersects(opponent.get_hurtbox()):
 		hit_landed = true
@@ -361,6 +372,19 @@ func get_hitbox(box: Rect2) -> Rect2:
 	var w := box.size.x * H
 	var left := position.x + (x if facing == 1 else -x - w)
 	return Rect2(left, position.y + box.position.y * H, w, box.size.y * H)
+
+
+## A fighter sent flying crashes through props; a walking fighter nudges them along.
+func _bump_props() -> void:
+	var me := get_hurtbox()
+	for prop in get_tree().get_nodes_in_group("props"):
+		if prop.broken or not me.intersects(prop.get_rect()):
+			continue
+		if state in ["hit", "ko"] and abs(slide) > 120.0:
+			prop.hit(Vector2(slide * 1.4, -320.0), 45)
+		elif state == "walk":
+			var dir: float = sign(prop.position.x - position.x)
+			prop.hit(Vector2(dir * 90.0, -40.0), 0, true)
 
 
 func _separate_from_opponent() -> void:

@@ -8,8 +8,10 @@ const FLOOR_Y := 640.0
 const ROUND_TIME := 99.0
 const WINS_NEEDED := 2
 const STAGES := [
-	{"name": "KARACHI ROOFTOP", "image": "res://assets/stage/karachi_rooftop.png", "music": "stage_karachi"},
-	{"name": "HUNZA VALLEY", "image": "res://assets/stage/hunza_valley.png", "music": "stage_hunza"},
+	{"name": "KARACHI ROOFTOP", "image": "res://assets/stage/karachi_rooftop.png", "music": "stage_karachi",
+		"props": [["crate", 105.0], ["matka", 235.0], ["drum", 1165.0], ["crate", 1045.0]]},
+	{"name": "HUNZA VALLEY", "image": "res://assets/stage/hunza_valley.png", "music": "stage_hunza",
+		"props": [["firewood", 120.0], ["basket", 250.0], ["copper_pot", 1170.0], ["basket", 1050.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE  (vs CPU)", "VERSUS  (2 players)", "CPU", "QUIT"]
@@ -56,6 +58,7 @@ func _ready() -> void:
 
 	bg = Sprite2D.new()
 	bg.centered = false
+	bg.z_index = -10          # behind props (-1) and fighters (0)
 	world.add_child(bg)
 	for st in STAGES:
 		var path: String = st["image"]
@@ -139,7 +142,7 @@ func _clear_match() -> void:
 	p1 = null
 	p2 = null
 	for n in world.get_children():
-		if n is Fireball:
+		if n is Fireball or n is Prop or n is PropPiece:
 			n.queue_free()
 	banner = ""
 	winner_text = ""
@@ -251,8 +254,12 @@ func _spawn(p: int, id: String, tint: Color, pitch: float) -> Fighter:
 
 func _start_round() -> void:
 	for n in world.get_children():
-		if n is Fireball:
+		if n is Fireball or n is Prop or n is PropPiece:
 			n.queue_free()
+	for spec in STAGES[stage_idx].get("props", []):
+		var prop := Prop.new()
+		world.add_child(prop)
+		prop.setup(spec[0], spec[1], FLOOR_Y)
 	p1.reset_for_round(400.0)
 	p2.reset_for_round(880.0)
 	clock = ROUND_TIME

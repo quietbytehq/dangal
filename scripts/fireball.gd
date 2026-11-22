@@ -45,6 +45,11 @@ func _physics_process(delta: float) -> void:
 				queue_free()
 				return
 
+	# specials blast stage props out of the way and keep going
+	for prop in get_tree().get_nodes_in_group("props"):
+		if not prop.broken and _hit_shape().intersects(prop.get_rect()):
+			prop.hit(Vector2(direction * 650.0, -420.0), 120 if kind == "fireball" else 90)
+
 	var target := owner_fighter.opponent
 	if target and _hit_shape().intersects(target.get_hurtbox()):
 		if target.take_hit(_damage(), 220.0, 0.45, direction, kind == "shockwave"):

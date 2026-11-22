@@ -1,6 +1,6 @@
 # Neon Knuckle
 
-A 2D arcade fighting game set in Pakistan, made in Godot 4.5. Two fighters, two stages, and full Urdu voice acting.
+A 2D arcade fighting game set in Pakistan, made in Godot 4.5. Two fighters, two stages, full voice acting, and breakable stage props.
 
 ![Neon Knuckle — Hunza Valley](docs/art_hunza.png)
 
@@ -21,14 +21,14 @@ To run it from source, open `project.godot` in Godot 4.5 and press **F5**.
 | Punch | Quick jab | Heavy open-palm strike |
 | Kick | Roundhouse to the head | Front push kick (big knockback) |
 | Down + Kick | Low sweep | Low leg sweep |
-| Special | **Toofan!** Chi fireball at chest height | **Zalzala!** Ground-pound shockwave that rolls along the floor. Jump over it, or crouch-block it. |
+| Special | **Storm Fist!** Chi fireball at chest height | **Earthquake!** Ground-pound shockwave that rolls along the floor. Jump over it, or crouch-block it. |
 
 ## Stages
 
 - **Karachi Rooftop:** a night-time rooftop over the city skyline, with fairy lights and a rickshaw-art mural.
 - **Hunza Valley:** a village courtyard under Rakaposhi at golden hour.
 
-Each stage has its own music.
+Each stage has its own music and its own props: crates, clay pots, barrels, apricot baskets, copper pots and firewood. They wobble and slide when you bump them, tumble when hit, and shatter when you smash them with attacks, specials, or your opponent's body.
 
 ## Controls
 
@@ -63,6 +63,7 @@ scripts/
   sprite_library.gd builds SpriteFrames from the sheets
   fighter.gd        movement, attacks, hitboxes, blocking, combos, CPU
   fireball.gd       special-move projectiles (fireball, shockwave)
+  prop.gd           breakable / movable stage props (+ prop_piece.gd fragments)
   main.gd           title, character + stage select, rounds, pause, HUD
 tools/              the sprite pipeline (frame extraction, background removal, packing)
 ```
