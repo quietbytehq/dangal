@@ -11,8 +11,13 @@ from PIL import Image
 
 # usage: python3 pack_char.py <char_dir> <prefix> <out_dir>
 ROOT, PREFIX, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
-MOVES = ["idle", "walk", "jab", "roundhouse", "crouch_kick", "jump",
-         "special", "hit", "knockdown"]
+MOVES = ["idle", "walk", "jab", "roundhouse", "crouch_punch", "crouch_kick", "jump",
+         "jump_punch", "jump_kick", "special", "kick_special", "ultra", "block",
+         "crouch_block", "hit", "knockdown"]
+# effects in these clips (energy, lightning) may reach the frame edge: they don't size the crop box
+NO_BOX = {"special", "ultra"}
+# guard clips: keep the whole clip, the game holds the guard frame
+NO_TRIM = {"block", "crouch_block"}
 LOOPING = {"idle", "walk"}
 FPS, SCALE, PAD = 12, 0.5, 10
 TOP = 360   # headroom added above the 1280x720 source space, for jumps that leave the frame
@@ -35,7 +40,7 @@ def mask(p):
 
 
 def trim(files, move):
-    if move in LOOPING:
+    if move in LOOPING or move in NO_TRIM:
         return files
     m = [mask(f) for f in files]
     d_start = np.array([np.logical_xor(x, m[0]).mean() for x in m])
@@ -57,12 +62,14 @@ def bbox(p):
 data = {}
 for mv in MOVES:
     files = sorted(glob.glob(f"{ROOT}/work/{mv}/cut/*.png"))
+    if not files:
+        print("missing", mv); continue
     if mv in LOOPING and len(files) > 1:
         files = files  # build_all already dropped the duplicate loop frame
     data[mv] = trim(files, mv)
     print(f"{mv:12s} {len(files):3d} -> {len(data[mv]):3d} frames")
 
-boxes = [b for mv, ps in data.items() if mv != "special" for p in ps if (b := bbox(p))]
+boxes = [b for mv, ps in data.items() if mv not in NO_BOX for p in ps if (b := bbox(p))]
 box = (max(min(b[0] for b in boxes) - PAD, 0), max(min(b[1] for b in boxes) - PAD, 0),
        min(max(b[2] for b in boxes) + PAD, 1280), min(max(b[3] for b in boxes) + PAD, 720 + TOP))
 cw, ch = round((box[2] - box[0]) * SCALE), round((box[3] - box[1]) * SCALE)

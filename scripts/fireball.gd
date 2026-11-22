@@ -9,6 +9,14 @@ var owner_fighter: Fighter
 var direction := 1
 var t := 0.0
 var _rocks: Array = []
+var _orb: Vfx
+var _next_burst := 0.0
+
+
+func _ready() -> void:
+	z_index = 4
+	if kind == "fireball":
+		_orb = Vfx.spawn(self, "chi_orb", Vector2.ZERO, 0.42, direction < 0, 4)
 
 
 func _speed() -> float:
@@ -29,8 +37,15 @@ func _hit_shape() -> Rect2:
 func _physics_process(delta: float) -> void:
 	t += delta
 	position.x += _speed() * direction * delta
-	if kind == "shockwave" and fmod(t, 0.05) < delta:
-		_rocks.append({"x": position.x, "age": 0.0, "h": randf_range(18, 46), "w": randf_range(14, 30)})
+	if kind == "shockwave":
+		_next_burst -= delta
+		if _next_burst <= 0.0:
+			_next_burst = 0.075
+			if Vfx.available("rock_burst"):
+				Vfx.spawn(get_parent(), "rock_burst", position + Vector2(randf_range(-10, 10), 0),
+						randf_range(0.42, 0.55), randf() < 0.5, 3, 1.3)
+			else:
+				_rocks.append({"x": position.x, "age": 0.0, "h": randf_range(18, 46), "w": randf_range(14, 30)})
 	for r in _rocks:
 		r["age"] += delta
 	_rocks = _rocks.filter(func(r): return r["age"] < 0.45)
@@ -41,6 +56,7 @@ func _physics_process(delta: float) -> void:
 		if other != self and other is Fireball and other.owner_fighter != owner_fighter:
 			if _hit_shape().intersects(other._hit_shape()):
 				Sound.sfx("fireball_hit", -3.0, 0.1)
+				Vfx.spawn(get_parent(), "fire_burst", (position + other.position) * 0.5, 0.9)
 				other.queue_free()
 				queue_free()
 				return
@@ -54,6 +70,9 @@ func _physics_process(delta: float) -> void:
 	if target and _hit_shape().intersects(target.get_hurtbox()):
 		if target.take_hit(_damage(), 220.0, 0.45, direction, kind == "shockwave"):
 			Sound.sfx("fireball_hit" if kind == "fireball" else "kick", 0.0, 0.03)
+			owner_fighter.gain_meter(8.0)
+		Vfx.spawn(get_parent(), "fire_burst" if kind == "fireball" else "rock_burst",
+				position if kind == "fireball" else position, 0.8 if kind == "fireball" else 0.75)
 		queue_free()
 	elif position.x < -100 or position.x > 1380:
 		queue_free()
@@ -67,6 +86,10 @@ func _draw() -> void:
 
 
 func _draw_fireball() -> void:
+	if _orb:
+		# soft glow under the generated orb animation
+		draw_circle(Vector2.ZERO, 46.0 * (1.0 + 0.1 * sin(t * 30.0)), Color(1.0, 0.45, 0.1, 0.22))
+		return
 	var radius := 34.0
 	var pulse := 1.0 + 0.12 * sin(t * 30.0)
 	for i in 5:
@@ -79,6 +102,9 @@ func _draw_fireball() -> void:
 
 
 func _draw_shockwave() -> void:
+	if Vfx.available("rock_burst"):
+		draw_circle(Vector2(0, -20), 38.0, Color(1.0, 0.8, 0.35, 0.2))
+		return
 	# trail of rock spikes bursting up from the floor behind the wave front
 	for r in _rocks:
 		var k: float = 1.0 - r["age"] / 0.45

@@ -1,7 +1,8 @@
 extends Node2D
 ## NEON KNUCKLE — game flow:
-## title -> character select -> stage select -> rounds (intro, fight, ko) -> match over.
-## Also: pause menu, hit-stop, combo counter, CPU difficulty.
+## title -> character select -> stage select -> versus close-ups -> rounds (intro, fight, ko)
+## -> victory close-ups. Also: pause menu, hit-stop, combo counter, ultra meter + cut-in,
+## animated stage backgrounds, CPU difficulty.
 
 const GAME_TITLE := "NEON KNUCKLE"
 const FLOOR_Y := 640.0
@@ -9,8 +10,10 @@ const ROUND_TIME := 99.0
 const WINS_NEEDED := 2
 const STAGES := [
 	{"name": "KARACHI ROOFTOP", "image": "res://assets/stage/karachi_rooftop.png", "music": "stage_karachi",
+		"video": "res://assets/stage/karachi_loop.ogv",
 		"props": [["crate", 105.0], ["matka", 235.0], ["drum", 1165.0], ["crate", 1045.0]]},
 	{"name": "HUNZA VALLEY", "image": "res://assets/stage/hunza_valley.png", "music": "stage_hunza",
+		"video": "res://assets/stage/hunza_loop.ogv",
 		"props": [["firewood", 120.0], ["basket", 250.0], ["copper_pot", 1170.0], ["basket", 1050.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
@@ -19,7 +22,7 @@ const PAUSE_ITEMS := ["RESUME", "CHARACTER SELECT", "TITLE SCREEN"]
 
 var p1: Fighter
 var p2: Fighter
-var phase := "title"   # title, select, stage, intro, fight, ko, match_over
+var phase := "title"   # title, select, stage, versus, intro, fight, ko, victory
 var phase_time := 0.0
 var round_num := 1
 var wins := {1: 0, 2: 0}
@@ -30,6 +33,11 @@ var shake := 0.0
 var hud: Control
 var world: Node2D
 var bg: Sprite2D
+var bg_video: VideoStreamPlayer
+var _portraits := {}
+var _ultra_user: Fighter
+var _ultra_t := -1.0
+var _champ: Fighter
 var p2_cpu := true
 var cpu_level := 1
 var stage_idx := 0
@@ -58,8 +66,17 @@ func _ready() -> void:
 
 	bg = Sprite2D.new()
 	bg.centered = false
-	bg.z_index = -10          # behind props (-1) and fighters (0)
+	bg.z_index = -11          # behind the video, props (-1) and fighters (0)
 	world.add_child(bg)
+	# looping animated background on top of the still image (falls back to the image)
+	bg_video = VideoStreamPlayer.new()
+	bg_video.z_index = -10
+	bg_video.size = Vector2(1280, 720)
+	bg_video.expand = true
+	bg_video.loop = true
+	bg_video.volume_db = -80.0
+	bg_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	world.add_child(bg_video)
 	for st in STAGES:
 		var path: String = st["image"]
 		_stage_tex[path] = load(path) if ResourceLoader.exists(path) else null
@@ -68,6 +85,10 @@ func _ready() -> void:
 	for id in Characters.ROSTER:
 		var def := Characters.get_def(id)
 		_sprite_cache[id] = SpriteLibrary.load_character(def["sprites"], def["json"])
+		_portraits[id] = {}
+		for kind in ["callout", "win", "beaten"]:
+			var path := "res://assets/portraits/%s_%s.jpg" % [id, kind]
+			_portraits[id][kind] = load(path) if ResourceLoader.exists(path) else null
 
 	var layer := CanvasLayer.new()
 	add_child(layer)
@@ -96,6 +117,8 @@ func _smoke_test() -> void:
 		_start_match()
 		p1.cpu = true
 		p1.cpu_level = 2
+		p1.meter = 100.0    # exercise the ultra path too
+		p2.meter = 100.0
 		phase = "fight"
 		p1.locked = false
 		p2.locked = false
@@ -116,6 +139,14 @@ func _set_stage(i: int) -> void:
 	bg.texture = tex
 	if tex:
 		bg.scale = Vector2(1280.0, 720.0) / tex.get_size()
+	var vpath: String = STAGES[i].get("video", "")
+	if vpath != "" and ResourceLoader.exists(vpath):
+		bg_video.stream = load(vpath)
+		bg_video.visible = true
+		bg_video.play()
+	else:
+		bg_video.stop()
+		bg_video.visible = false
 
 
 func _pressed(action: String) -> bool:
@@ -164,6 +195,9 @@ func _process_title() -> void:
 
 func _clear_match() -> void:
 	_set_paused(false)
+	_ultra_t = -1.0
+	_ultra_user = null
+	_champ = null
 	for f in [p1, p2]:
 		if f:
 			f.queue_free()
@@ -247,6 +281,33 @@ func _process_stage() -> void:
 		phase = "select"
 	elif phase_time > 0.2 and (_pressed("p1_punch") or _pressed("start")):
 		Sound.sfx("punch")
+		phase = "versus"
+		phase_time = 0.0
+		_cues.clear()
+		Sound.music_volume(-18.0)
+
+
+# ---------------------------------------------------------------- versus close-ups
+
+func _id(p: int) -> String:
+	return Characters.ROSTER[_cursor[p]]
+
+
+func _process_versus() -> void:
+	var id1 := _id(1)
+	var id2 := _id(2)
+	if _cue("challenger", 0.05):
+		Sound.announce("new_challenger")
+	if _cue("slam", 0.45):
+		Sound.sfx("ground_pound", -2.0, 0.0)
+		shake = 10.0
+	if _cue("call1", 2.0):
+		Sound.voice(Characters.get_def(id1)["voice"], 1, "callout")
+	if _cue("call2", 5.0):
+		Sound.voice(Characters.get_def(id2)["voice"], 2, "callout", 1.0, 0.9 if id1 == id2 else 1.0)
+	var skip := phase_time > 0.6 and (_pressed("start") or _pressed("p1_punch"))
+	if phase_time > 8.2 or skip:
+		Sound.music_volume(-9.0)
 		_start_match()
 
 
@@ -275,6 +336,7 @@ func _spawn(p: int, id: String, tint: Color, pitch: float) -> Fighter:
 	f.knocked_out.connect(_on_ko)
 	f.landed_hit.connect(_on_hit)
 	f.quake.connect(func(amount: float): shake = max(shake, amount))
+	f.ultra_requested.connect(_on_ultra)
 	return f
 
 
@@ -291,6 +353,8 @@ func _start_round() -> void:
 	p1.reset_for_round(400.0)
 	p2.reset_for_round(880.0)
 	clock = ROUND_TIME
+	_ultra_t = -1.0
+	_ultra_user = null
 	phase = "intro"
 	phase_time = 0.0
 	_cues.clear()
@@ -324,6 +388,8 @@ func _process(delta: float) -> void:
 			_process_select()
 		"stage":
 			_process_stage()
+		"versus":
+			_process_versus()
 		"intro":
 			if round_num == 1 and _cue("taunt", 0.1):
 				p2.say("intro")
@@ -339,30 +405,34 @@ func _process(delta: float) -> void:
 				p1.locked = false
 				p2.locked = false
 		"fight":
-			clock = max(clock - delta, 0.0)
-			if clock <= 0.0:
-				_end_round(_leader(), "TIME")
+			if _ultra_t >= 0.0:
+				_process_ultra_cutin(real)
+			else:
+				clock = max(clock - delta, 0.0)
+				if clock <= 0.0:
+					_end_round(_leader(), "TIME")
 		"ko":
 			if _round_winner and _cue("win_line", 1.6):
 				_round_winner.say("win2" if randf() < 0.5 else "win1")
 			if phase_time > 3.6:
 				if wins[1] >= WINS_NEEDED or wins[2] >= WINS_NEEDED:
-					phase = "match_over"
+					phase = "victory"
 					phase_time = 0.0
 					_cues.clear()
-					var champ := p1 if wins[1] > wins[2] else p2
-					banner = "%s WINS!" % champ.display_name
-					winner_text = "Enter / Start: rematch      Kick: character select"
-					Sound.announce("p%d_wins" % champ.player)
-					Sound.music_volume(-16.0)
+					_champ = p1 if wins[1] > wins[2] else p2
+					banner = ""
+					winner_text = ""
+					Sound.announce("p%d_wins" % _champ.player)
+					Sound.music_volume(-18.0)
 				else:
 					round_num += 1
 					_start_round()
-		"match_over":
-			if _cue("champ_line", 1.6):
-				var champ := p1 if wins[1] > wins[2] else p2
-				champ.say("win1")
-			if phase_time > 0.6:
+		"victory":
+			if _cue("tease", 1.4):
+				_champ.say("tease")
+			if _cue("groan", 4.2):
+				_champ.opponent.say("groan")
+			if phase_time > 1.5:
 				if _pressed("start") or _pressed("p1_punch"):
 					wins = {1: 0, 2: 0}
 					round_num = 1
@@ -479,6 +549,38 @@ func _on_hit(target: Fighter, blocked: bool) -> void:
 		_combo[attacker] = [target.combo, 1.4]
 
 
+# ---------------------------------------------------------------- ultra cut-in
+
+func _on_ultra(f: Fighter) -> void:
+	if phase != "fight" or _ultra_t >= 0.0:
+		f.meter = Fighter.METER_MAX     # refund: not allowed right now
+		f.state = "idle"
+		return
+	_ultra_user = f
+	_ultra_t = 0.0
+	f.frozen = true
+	f.opponent.frozen = true
+	Sound.announce("ultra")
+	Sound.sfx("ultra_charge", 0.0, 0.0)
+	Sound.music_volume(-20.0)
+
+
+func _process_ultra_cutin(real: float) -> void:
+	_ultra_t += real
+	var f := _ultra_user
+	if f == null or not is_instance_valid(f):
+		_ultra_t = -1.0
+		return
+	if f.frozen and _ultra_t > 1.15:
+		f.frozen = false
+		f.begin_ultra()
+	# the opponent is released the moment the ultra's blast comes out
+	if not f.frozen and (f.special_spawned or f.state != "ultra"):
+		f.opponent.frozen = false
+		_ultra_t = -1.0
+		Sound.music_volume(-9.0)
+
+
 ## Freeze the action for a moment on impact, the way arcade fighters do.
 func _hitstop(seconds: float) -> void:
 	_hitstop_token += 1
@@ -497,6 +599,12 @@ func _draw_hud() -> void:
 		"title":
 			_draw_title(font)
 			return
+		"versus":
+			_draw_versus(font)
+			return
+		"victory":
+			_draw_victory(font)
+			return
 		"select":
 			_draw_select(font)
 			return
@@ -509,6 +617,8 @@ func _draw_hud() -> void:
 	hud.draw_string(font, Vector2(40, 82), p1.display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
 	var p2_name := p2.display_name + (" (CPU %s)" % LEVELS[cpu_level] if p2.cpu else "")
 	hud.draw_string(font, Vector2(w - 540, 82), p2_name, HORIZONTAL_ALIGNMENT_RIGHT, 500, 22, Color.WHITE)
+	_meter_bar(Rect2(40, 122, 300, 12), p1, false)
+	_meter_bar(Rect2(w - 340, 122, 300, 12), p2, true)
 	_win_marks(Vector2(40, 96), wins[1])
 	_win_marks(Vector2(w - 40 - 22 * WINS_NEEDED, 96), wins[2])
 
@@ -527,6 +637,9 @@ func _draw_hud() -> void:
 		_outlined(font, Vector2(0, 330), banner, 84, Color(1, 0.8, 0.2))
 	if winner_text != "":
 		_outlined(font, Vector2(0, 400), winner_text, 28, Color.WHITE)
+
+	if _ultra_t >= 0.0 and _ultra_user:
+		_draw_ultra_cutin(font)
 
 	if paused:
 		_draw_pause(font)
@@ -623,6 +736,132 @@ func _draw_pause(font: Font) -> void:
 			_neon(font, Vector2(0, y), "»  " + label + "  «", 34, Color(1, 0.3, 0.8))
 		else:
 			hud.draw_string(font, Vector2(0, y), label, HORIZONTAL_ALIGNMENT_CENTER, 1280, 30, Color(0.8, 0.8, 0.9))
+
+
+func _meter_bar(r: Rect2, f: Fighter, right_side: bool) -> void:
+	hud.draw_rect(r.grow(2), Color(0, 0, 0, 0.7))
+	var frac: float = f.meter / Fighter.METER_MAX
+	var fill := Rect2(r.position, Vector2(r.size.x * frac, r.size.y))
+	if right_side:
+		fill.position.x = r.end.x - fill.size.x
+	var full := frac >= 1.0
+	var pulse := 0.6 + 0.4 * sin(phase_time * 10.0)
+	var col := Color(0.3, 0.9, 1.0, pulse) if full else Color(0.2, 0.55, 1.0)
+	hud.draw_rect(fill, col)
+	if full:
+		var font := ThemeDB.fallback_font
+		var label := "ULTRA READY  [ I / Y ]" if f.player == 1 else "ULTRA READY  [ Num4 / Y ]"
+		hud.draw_string(font, Vector2(r.position.x, r.end.y + 18), label,
+				HORIZONTAL_ALIGNMENT_RIGHT if right_side else HORIZONTAL_ALIGNMENT_LEFT, r.size.x, 14,
+				Color(0.4, 0.95, 1.0, pulse))
+
+
+## Which way each close-up faces as drawn: -1 left, 1 right.
+const PORTRAIT_FACING := {"rustam_callout": -1, "babasher_callout": -1,
+		"rustam_win": -1, "babasher_win": 1, "rustam_beaten": 1, "babasher_beaten": -1}
+
+
+## True if the close-up must be mirrored so it faces `want` (-1 left, 1 right).
+func _mirror_for(id: String, kind: String, want: int) -> bool:
+	return int(PORTRAIT_FACING.get("%s_%s" % [id, kind], 1)) != want
+
+
+## A portrait panel: the close-up image cropped to fill `r`, optionally mirrored and tinted.
+func _portrait(id: String, kind: String, r: Rect2, mirror: bool, tint := Color.WHITE) -> void:
+	var tex: Texture2D = _portraits.get(id, {}).get(kind)
+	if tex == null:
+		# fall back to the idle sprite if the close-up is missing
+		var frames: SpriteFrames = _sprite_cache[id]["frames"]
+		tex = frames.get_frame_texture("idle", 0)
+	if tex == null:
+		return
+	var ts := tex.get_size()
+	var s: float = max(r.size.x / ts.x, r.size.y / ts.y)
+	var src_size := r.size / s
+	var src := Rect2((ts - src_size) * 0.5, src_size)
+	var dst := r
+	if mirror:
+		dst = Rect2(r.position.x + r.size.x, r.position.y, -r.size.x, r.size.y)
+	hud.draw_texture_rect_region(tex, dst, src, tint)
+
+
+func _speech(font: Font, at: Vector2, text: String, width: float, col: Color) -> void:
+	var box := Rect2(at - Vector2(12, 34), Vector2(width + 24, 52))
+	hud.draw_rect(box, Color(0, 0, 0, 0.75))
+	hud.draw_rect(box, col, false, 3.0)
+	hud.draw_string(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, width, 22, Color.WHITE)
+
+
+func _draw_versus(font: Font) -> void:
+	var id1 := _id(1)
+	var id2 := _id(2)
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.04, 0.02, 0.08, 1.0))
+	var slide: float = clamp(phase_time / 0.35, 0.0, 1.0)
+	var eased := 1.0 - pow(1.0 - slide, 3.0)
+	# P1 faces right, P2 faces left. The close-ups were drawn Rustam facing right and
+	# Baba Sher facing left, so mirror whichever one is on the wrong side.
+	var left := Rect2(-640.0 + 640.0 * eased, 0, 640, 720)
+	var right := Rect2(1280.0 - 640.0 * eased, 0, 640, 720)
+	_portrait(id1, "callout", left, _mirror_for(id1, "callout", 1))
+	_portrait(id2, "callout", right, _mirror_for(id2, "callout", -1),
+			Color(0.8, 0.9, 1.2) if id1 == id2 else Color.WHITE)
+	# neon split line
+	hud.draw_line(Vector2(640, 0), Vector2(640, 720), Color(1, 0.3, 0.8, 0.9), 6.0)
+	if phase_time > 0.45:
+		var pop: float = clamp((phase_time - 0.45) / 0.15, 0.0, 1.0)
+		_neon(font, Vector2(0, 400), "VS", int(lerp(260.0, 150.0, pop)), Color(1, 0.85, 0.2))
+	_outlined(font, Vector2(-320, 680), Characters.get_def(id1)["name"], 46, Color(0.4, 0.75, 1.0))
+	_outlined(font, Vector2(320, 680), Characters.get_def(id2)["name"], 46, Color(1.0, 0.4, 0.4))
+	if phase_time > 2.0 and phase_time < 5.0:
+		_speech(font, Vector2(40, 120), Characters.get_def(id1)["callout_text"], 560, Color(0.4, 0.75, 1.0))
+	if phase_time > 5.0:
+		_speech(font, Vector2(680, 120), Characters.get_def(id2)["callout_text"], 560, Color(1.0, 0.4, 0.4))
+	hud.draw_string(font, Vector2(0, 712), "Punch / Enter to skip", HORIZONTAL_ALIGNMENT_CENTER,
+			1280, 14, Color(1, 1, 1, 0.45))
+
+
+func _draw_victory(font: Font) -> void:
+	if _champ == null:
+		return
+	var loser := _champ.opponent
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.03, 0.02, 0.06, 0.92))
+	var champ_left := _champ.player == 1
+	var big := Rect2(0 if champ_left else 480, 0, 800, 720)
+	var small := Rect2(860 if champ_left else 40, 150, 380, 420)
+	# the winner faces the loser's panel
+	_portrait(_champ.char_id, "win", big, _mirror_for(_champ.char_id, "win", 1 if champ_left else -1))
+	hud.draw_rect(small.grow(4), Color(0.3, 0.4, 0.6, 0.9), false, 4.0)
+	_portrait(loser.char_id, "beaten", small,
+			_mirror_for(loser.char_id, "beaten", -1 if champ_left else 1), Color(0.75, 0.8, 0.95))
+	var name_x := -240.0 if champ_left else 240.0
+	_neon(font, Vector2(name_x, 90), "%s WINS!" % _champ.display_name, 64, Color(1, 0.85, 0.2))
+	if phase_time > 1.4:
+		var sx := 40.0 if champ_left else 520.0
+		_speech(font, Vector2(sx, 640), _champ.def["tease_text"], 720, Color(1, 0.8, 0.2))
+	if phase_time > 4.2:
+		_speech(font, Vector2(small.position.x - 10, small.end.y + 48), loser.def["groan_text"],
+				400, Color(0.5, 0.6, 0.8))
+	if phase_time > 1.5:
+		hud.draw_string(font, Vector2(0, 712), "Enter / Start: rematch      Kick: character select",
+				HORIZONTAL_ALIGNMENT_CENTER, 1280, 16, Color(1, 1, 1, 0.7))
+
+
+func _draw_ultra_cutin(font: Font) -> void:
+	var f := _ultra_user
+	var t := _ultra_t
+	var a: float = clamp(t / 0.15, 0.0, 1.0) * clamp((1.25 - t) / 0.2, 0.0, 1.0)
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0, 0, 0, 0.55 * a))
+	# diagonal band with the fighter's close-up sweeping across
+	var band := Rect2(0, 200, 1280, 280)
+	hud.draw_rect(band, Color(0.05, 0.02, 0.1, 0.85 * a))
+	var dir := 1.0 if f.player == 1 else -1.0
+	var x: float = lerp(-700.0, 300.0, clamp(t / 0.35, 0.0, 1.0)) if dir > 0 \
+			else lerp(1980.0, 980.0, clamp(t / 0.35, 0.0, 1.0)) - 700.0
+	_portrait(f.char_id, "callout", Rect2(x, 200, 700, 280),
+			_mirror_for(f.char_id, "callout", 1 if dir > 0 else -1), Color(1, 1, 1, a))
+	hud.draw_line(Vector2(0, 200), Vector2(1280, 200), Color(0.3, 0.9, 1.0, a), 4.0)
+	hud.draw_line(Vector2(0, 480), Vector2(1280, 480), Color(0.3, 0.9, 1.0, a), 4.0)
+	_neon(font, Vector2(0, 560), str(f.def.get("ultra_name", "ULTRA")), 72, Color(0.4, 0.95, 1.0, a))
 
 
 func _health_bar(r: Rect2, f: Fighter, right_side: bool) -> void:

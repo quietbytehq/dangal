@@ -1,6 +1,6 @@
 {
   "frame_width": 640,
-  "frame_height": 500,
+  "frame_height": 502,
   "fps": 12,
   "feet_anchor": {
     "x": 314,
@@ -36,6 +36,13 @@
       "rows": 5,
       "loop": false
     },
+    "crouch_punch": {
+      "file": "rustam_crouch_punch.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
     "crouch_kick": {
       "file": "rustam_crouch_kick.png",
       "frames": 35,
@@ -50,11 +57,53 @@
       "rows": 5,
       "loop": false
     },
+    "jump_punch": {
+      "file": "rustam_jump_punch.png",
+      "frames": 33,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "rustam_jump_kick.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
     "special": {
       "file": "rustam_special.png",
       "frames": 39,
       "columns": 8,
       "rows": 5,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "rustam_kick_special.png",
+      "frames": 28,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "ultra": {
+      "file": "rustam_ultra.png",
+      "frames": 65,
+      "columns": 8,
+      "rows": 9,
+      "loop": false
+    },
+    "block": {
+      "file": "rustam_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "rustam_crouch_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
       "loop": false
     },
     "hit": {

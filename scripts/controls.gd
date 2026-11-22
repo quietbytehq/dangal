@@ -5,16 +5,17 @@ extends Node
 
 const KEYS := {
 	1: {"left": KEY_A, "right": KEY_D, "up": KEY_W, "down": KEY_S,
-		"punch": KEY_J, "kick": KEY_K, "special": KEY_L},
+		"punch": KEY_J, "kick": KEY_K, "special": KEY_L, "ultra": KEY_I},
 	2: {"left": KEY_LEFT, "right": KEY_RIGHT, "up": KEY_UP, "down": KEY_DOWN,
-		"punch": KEY_KP_1, "kick": KEY_KP_2, "special": KEY_KP_3},
+		"punch": KEY_KP_1, "kick": KEY_KP_2, "special": KEY_KP_3, "ultra": KEY_KP_4},
 }
 
-# Xbox layout: X = punch, A = kick, B = special. (PlayStation: Square, Cross, Circle.)
+# Xbox layout: X = punch, A = kick, B = special, Y = ultra.
+# (PlayStation: Square, Cross, Circle, Triangle.)
 const PAD_BUTTONS := {
 	"left": JOY_BUTTON_DPAD_LEFT, "right": JOY_BUTTON_DPAD_RIGHT,
 	"up": JOY_BUTTON_DPAD_UP, "down": JOY_BUTTON_DPAD_DOWN,
-	"punch": JOY_BUTTON_X, "kick": JOY_BUTTON_A, "special": JOY_BUTTON_B,
+	"punch": JOY_BUTTON_X, "kick": JOY_BUTTON_A, "special": JOY_BUTTON_B, "ultra": JOY_BUTTON_Y,
 }
 
 const PAD_AXES := {

@@ -4,7 +4,7 @@ config_version=5
 [application]
 
 config/name="Neon Knuckle"
-config/version="0.2.0"
+config/version="0.3.0"
 config/description="Neon Knuckle — a 2D arcade fighting game by QuietByte"
 config/icon="res://icon.png"
 run/main_scene="res://scenes/main.tscn"

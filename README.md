@@ -1,6 +1,6 @@
 # Neon Knuckle
 
-A 2D arcade fighting game set in Pakistan, made in Godot 4.5. Two fighters, two stages, full voice acting, and breakable stage props.
+A 2D arcade fighting game set in Pakistan, made in Godot 4.5. Two fighters, two animated stages, full voice acting, ultra moves with cinematic cut-ins, pre-fight call-outs, post-fight taunts, and breakable stage props.
 
 ![Neon Knuckle — Hunza Valley](docs/art_hunza.png)
 
@@ -20,13 +20,19 @@ To run it from source, open `project.godot` in Godot 4.5 and press **F5**.
 | Health | 1000 | 1150 |
 | Punch | Quick jab | Heavy open-palm strike |
 | Kick | Roundhouse to the head | Front push kick (big knockback) |
+| Down + Punch | Low punch | Low palm strike |
 | Down + Kick | Low sweep | Low leg sweep |
+| Jump + Punch / Kick | Diving punch / flying kick | Diving hammer fist / flying knee |
 | Special | **Storm Fist!** Chi fireball at chest height | **Earthquake!** Ground-pound shockwave that rolls along the floor. Jump over it, or crouch-block it. |
+| Kick special | **Hurricane Kick!** Spinning multi-hit kick that travels forward | **Avalanche!** Axe kick that shakes the ground and erupts rocks |
+| Ultra | **Lightning Storm!** A screen-wide lightning beam | **Mountain Breaker!** Rock eruptions sweep the whole floor. Jump it, or crouch-block it. |
 
 ## Stages
 
 - **Karachi Rooftop:** a night-time rooftop over the city skyline, with fairy lights and a rickshaw-art mural.
 - **Hunza Valley:** a village courtyard under Rakaposhi at golden hour.
+
+Both backgrounds are animated loops: lights flicker, flags wave and clouds drift.
 
 Each stage has its own music and its own props: crates, clay pots, barrels, apricot baskets, copper pots and firewood. They wobble and slide when you bump them, tumble when hit, and shatter when you smash them with attacks, specials, or your opponent's body.
 
@@ -40,21 +46,28 @@ Each stage has its own music and its own props: crates, clay pots, barrels, apri
 | Punch   | J                 | Numpad 1          | X / Square                  |
 | Kick    | K                 | Numpad 2          | A / Cross                   |
 | Special | L                 | Numpad 3          | B / Circle                  |
+| Ultra   | I                 | Numpad 4          | Y / Triangle                |
 | Pause   | Enter or Esc      | Enter             | Start                       |
 
 - Joypad 1 controls player 1 and joypad 2 controls player 2.
 - **Arcade** mode puts you against the CPU (Easy, Normal or Hard). **Versus** mode is for two players. F2 switches player 2 between the CPU and a human at any time.
 - **Special:** Down, Down-Forward, Forward + Punch, or the Special button. It has a short cooldown.
-- **Block:** hold away from your opponent. Low attacks such as the shockwave need a crouching block (back + down). Blocked hits do 10% damage.
+- **Kick special:** Down, Down-Forward, Forward + Kick, or Forward + Special.
+- **Ultra:** the blue meter under your health fills as you hit, get hit and block. When it reads ULTRA READY, press Ultra.
+- **Block:** hold away from your opponent; your fighter raises a guard when an attack is coming. Low attacks need a crouching block (back + down). Blocked hits do 10% damage.
+- **Air attacks:** press Punch or Kick during a jump.
+- The fighters can't walk through each other; they push each other along instead.
 - **Combos:** hits that land while the opponent is still reeling count towards a combo.
 
-Matches are best of three rounds, with 99 seconds per round.
+Matches are best of three rounds, with 99 seconds per round. Before each match the two fighters call each other out in close-up, and afterwards the winner taunts the beaten loser. Press Punch or Enter to skip either screen.
 
 ## Project layout
 
 ```
 assets/<fighter>/   sprite sheets + <fighter>_sprites.json (frame size, fps, feet anchor)
-assets/stage/       stage backgrounds
+assets/stage/       stage backgrounds (still images + looping .ogv videos)
+assets/vfx/         effect sheets drawn with additive blending (chi orb, fire burst, rocks, lightning)
+assets/portraits/   close-ups for the versus and victory screens
 assets/audio/       announcer, fighter voices, sfx, music (.ogg)
 scripts/
   characters.gd     roster: stats, attacks, specials (add new fighters here)
@@ -63,6 +76,8 @@ scripts/
   sprite_library.gd builds SpriteFrames from the sheets
   fighter.gd        movement, attacks, hitboxes, blocking, combos, CPU
   fireball.gd       special-move projectiles (fireball, shockwave)
+  ultra_fx.gd       ultra moves (lightning beam, rock wave)
+  vfx.gd            additive effect animations
   prop.gd           breakable / movable stage props (+ prop_piece.gd fragments)
   main.gd           title, character + stage select, rounds, pause, HUD
 tools/              the sprite pipeline (frame extraction, background removal, packing)
@@ -70,9 +85,9 @@ tools/              the sprite pipeline (frame extraction, background removal, p
 
 ## Adding a fighter
 
-1. Generate the nine animations (idle, walk, jab, roundhouse, crouch_kick, jump, special, hit, knockdown) as short clips on a plain background. Each clip should start from the same reference image.
+1. Generate the animations (idle, walk, jab, roundhouse, crouch_punch, crouch_kick, jump, jump_punch, jump_kick, special, kick_special, ultra, block, crouch_block, hit, knockdown) as short clips on a plain background. Each clip should start from the same reference image.
 2. Run `tools/cut_move.py` for each clip, then `tools/pack_char.py` to build the sheets in `assets/<id>/`.
-3. Put the voice lines in `assets/audio/<id>/`.
+3. Put the voice lines in `assets/audio/<id>/` and the close-ups (`<id>_callout.jpg`, `<id>_win.jpg`, `<id>_beaten.jpg`) in `assets/portraits/`.
 4. Add an entry to `Characters.DATA` and its id to `Characters.ROSTER`.
 
 ## Releasing

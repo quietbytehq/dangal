@@ -36,6 +36,13 @@
       "rows": 5,
       "loop": false
     },
+    "crouch_punch": {
+      "file": "babasher_crouch_punch.png",
+      "frames": 42,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
     "crouch_kick": {
       "file": "babasher_crouch_kick.png",
       "frames": 37,
@@ -50,11 +57,53 @@
       "rows": 5,
       "loop": false
     },
+    "jump_punch": {
+      "file": "babasher_jump_punch.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "babasher_jump_kick.png",
+      "frames": 34,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
     "special": {
       "file": "babasher_special.png",
       "frames": 38,
       "columns": 8,
       "rows": 5,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "babasher_kick_special.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "ultra": {
+      "file": "babasher_ultra.png",
+      "frames": 66,
+      "columns": 8,
+      "rows": 9,
+      "loop": false
+    },
+    "block": {
+      "file": "babasher_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "babasher_crouch_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
       "loop": false
     },
     "hit": {
