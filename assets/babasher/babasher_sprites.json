@@ -1,12 +1,12 @@
 {
-  "frame_width": 634,
+  "frame_width": 640,
   "frame_height": 516,
   "fps": 12,
   "feet_anchor": {
     "x": 312,
     "y": 510
   },
-  "body_height": 350,
+  "body_height": 351,
   "animations": {
     "idle": {
       "file": "babasher_idle.png",
@@ -31,7 +31,7 @@
     },
     "roundhouse": {
       "file": "babasher_roundhouse.png",
-      "frames": 36,
+      "frames": 40,
       "columns": 8,
       "rows": 5,
       "loop": false
@@ -52,21 +52,21 @@
     },
     "special": {
       "file": "babasher_special.png",
-      "frames": 43,
+      "frames": 38,
       "columns": 8,
-      "rows": 6,
+      "rows": 5,
       "loop": false
     },
     "hit": {
       "file": "babasher_hit.png",
-      "frames": 30,
+      "frames": 36,
       "columns": 8,
-      "rows": 4,
+      "rows": 5,
       "loop": false
     },
     "knockdown": {
       "file": "babasher_knockdown.png",
-      "frames": 37,
+      "frames": 34,
       "columns": 8,
       "rows": 5,
       "loop": false

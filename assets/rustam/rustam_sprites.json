@@ -1,9 +1,9 @@
 {
-  "frame_width": 579,
-  "frame_height": 501,
+  "frame_width": 640,
+  "frame_height": 500,
   "fps": 12,
   "feet_anchor": {
-    "x": 275,
+    "x": 314,
     "y": 491
   },
   "body_height": 346,
@@ -31,7 +31,7 @@
     },
     "roundhouse": {
       "file": "rustam_roundhouse.png",
-      "frames": 38,
+      "frames": 36,
       "columns": 8,
       "rows": 5,
       "loop": false
@@ -59,16 +59,16 @@
     },
     "hit": {
       "file": "rustam_hit.png",
-      "frames": 31,
+      "frames": 32,
       "columns": 8,
       "rows": 4,
       "loop": false
     },
     "knockdown": {
       "file": "rustam_knockdown.png",
-      "frames": 35,
+      "frames": 32,
       "columns": 8,
-      "rows": 5,
+      "rows": 4,
       "loop": false
     }
   }
