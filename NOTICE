@@ -1,0 +1,21 @@
+Neon Knuckle
+Copyright 2026 QuietByte (https://github.com/quietbytehq)
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Bundled assets
+--------------
+All character art, animation frames, stage backgrounds, voice lines, sound
+effects and music in assets/ were generated for this project with ElevenLabs
+creative tools (image, video, speech, sound-effect and music models), then
+processed (frame extraction, background removal, sprite packing) by the
+project's own tooling. Characters, stages and names are original to this game.
+
+Voices used (ElevenLabs voice library):
+  - Rustam:     "Khair Muhammad" (Urdu)
+  - Baba Sher:  "Amjid ch - Urdu Documentary Narrator pak" (Urdu)
+  - Announcer:  "David - Sports Arena Announcer" (English)
+
+Engine
+------
+Built with the Godot Engine (https://godotengine.org), MIT license.

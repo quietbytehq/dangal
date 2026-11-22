@@ -1,0 +1,75 @@
+{
+  "frame_width": 634,
+  "frame_height": 360,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 312,
+    "y": 354
+  },
+  "body_height": 350,
+  "animations": {
+    "idle": {
+      "file": "babasher_idle.png",
+      "frames": 48,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "walk": {
+      "file": "babasher_walk.png",
+      "frames": 48,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "jab": {
+      "file": "babasher_jab.png",
+      "frames": 29,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "babasher_roundhouse.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "babasher_crouch_kick.png",
+      "frames": 37,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "jump": {
+      "file": "babasher_jump.png",
+      "frames": 35,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "special": {
+      "file": "babasher_special.png",
+      "frames": 43,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "hit": {
+      "file": "babasher_hit.png",
+      "frames": 30,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "babasher_knockdown.png",
+      "frames": 37,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    }
+  }
+}

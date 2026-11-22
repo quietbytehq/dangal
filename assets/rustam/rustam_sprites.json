@@ -1,0 +1,75 @@
+{
+  "frame_width": 579,
+  "frame_height": 357,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 275,
+    "y": 347
+  },
+  "body_height": 346,
+  "animations": {
+    "idle": {
+      "file": "rustam_idle.png",
+      "frames": 48,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "walk": {
+      "file": "rustam_walk.png",
+      "frames": 48,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "jab": {
+      "file": "rustam_jab.png",
+      "frames": 32,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "rustam_roundhouse.png",
+      "frames": 38,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "rustam_crouch_kick.png",
+      "frames": 35,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "jump": {
+      "file": "rustam_jump.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "special": {
+      "file": "rustam_special.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "hit": {
+      "file": "rustam_hit.png",
+      "frames": 31,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "rustam_knockdown.png",
+      "frames": 35,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    }
+  }
+}
