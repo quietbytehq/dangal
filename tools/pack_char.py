@@ -15,10 +15,22 @@ MOVES = ["idle", "walk", "jab", "roundhouse", "crouch_kick", "jump",
          "special", "hit", "knockdown"]
 LOOPING = {"idle", "walk"}
 FPS, SCALE, PAD = 12, 0.5, 10
+TOP = 360   # headroom added above the 1280x720 source space, for jumps that leave the frame
+
+
+def load(p):
+    """Every frame in one padded space: 1280 x (720 + TOP). Frames already that tall
+    (remapped jump frames) are used as they are."""
+    im = Image.open(p).convert("RGBA")
+    if im.size == (1280, 720 + TOP):
+        return im
+    c = Image.new("RGBA", (1280, 720 + TOP), (0, 0, 0, 0))
+    c.paste(im, (0, TOP))
+    return c
 
 
 def mask(p):
-    a = np.asarray(Image.open(p).getchannel("A").resize((320, 180)))
+    a = np.asarray(load(p).getchannel("A").resize((320, 270)))
     return a > 60
 
 
@@ -39,7 +51,7 @@ def trim(files, move):
 
 
 def bbox(p):
-    return Image.open(p).getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
+    return load(p).getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
 
 
 data = {}
@@ -52,7 +64,7 @@ for mv in MOVES:
 
 boxes = [b for mv, ps in data.items() if mv != "special" for p in ps if (b := bbox(p))]
 box = (max(min(b[0] for b in boxes) - PAD, 0), max(min(b[1] for b in boxes) - PAD, 0),
-       min(max(b[2] for b in boxes) + PAD, 1280), min(max(b[3] for b in boxes) + PAD, 720))
+       min(max(b[2] for b in boxes) + PAD, 1280), min(max(b[3] for b in boxes) + PAD, 720 + TOP))
 cw, ch = round((box[2] - box[0]) * SCALE), round((box[3] - box[1]) * SCALE)
 
 ib = bbox(data["idle"][0])
@@ -65,7 +77,7 @@ os.makedirs(f"{ROOT}/previews", exist_ok=True)
 meta = {"frame_width": cw, "frame_height": ch, "fps": FPS, "feet_anchor": anchor,
         "body_height": body_h, "animations": {}}
 for mv, ps in data.items():
-    cells = [Image.open(p).crop(box).resize((cw, ch), Image.LANCZOS) for p in ps]
+    cells = [load(p).crop(box).resize((cw, ch), Image.LANCZOS) for p in ps]
     cols = min(len(cells), 8)
     rows = -(-len(cells) // cols)
     sheet = Image.new("RGBA", (cols * cw, rows * ch), (0, 0, 0, 0))

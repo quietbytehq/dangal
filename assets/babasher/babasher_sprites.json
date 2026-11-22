@@ -1,10 +1,10 @@
 {
   "frame_width": 634,
-  "frame_height": 360,
+  "frame_height": 516,
   "fps": 12,
   "feet_anchor": {
     "x": 312,
-    "y": 354
+    "y": 510
   },
   "body_height": 350,
   "animations": {
@@ -45,7 +45,7 @@
     },
     "jump": {
       "file": "babasher_jump.png",
-      "frames": 35,
+      "frames": 36,
       "columns": 8,
       "rows": 5,
       "loop": false

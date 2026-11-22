@@ -1,10 +1,10 @@
 {
   "frame_width": 579,
-  "frame_height": 357,
+  "frame_height": 501,
   "fps": 12,
   "feet_anchor": {
     "x": 275,
-    "y": 347
+    "y": 491
   },
   "body_height": 346,
   "animations": {
@@ -45,7 +45,7 @@
     },
     "jump": {
       "file": "rustam_jump.png",
-      "frames": 36,
+      "frames": 40,
       "columns": 8,
       "rows": 5,
       "loop": false
