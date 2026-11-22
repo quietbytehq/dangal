@@ -77,7 +77,35 @@ func _ready() -> void:
 	hud.draw.connect(_draw_hud)
 	layer.add_child(hud)
 
-	_enter_title()
+	if "--smoke" in OS.get_cmdline_user_args():
+		_smoke_test()
+	else:
+		_enter_title()
+
+
+## CI self-test: CPU vs CPU on every stage for a few seconds each, then quit.
+## Any script/runtime error shows up in the log and fails the build.
+func _smoke_test() -> void:
+	var t := 0.0
+	for st in STAGES.size():
+		_clear_match()
+		_set_stage(st)
+		_cursor = {1: st % Characters.ROSTER.size(), 2: (st + 1) % Characters.ROSTER.size()}
+		p2_cpu = true
+		cpu_level = 2
+		_start_match()
+		p1.cpu = true
+		p1.cpu_level = 2
+		phase = "fight"
+		p1.locked = false
+		p2.locked = false
+		# throw some props around so their physics run too
+		for prop in get_tree().get_nodes_in_group("props"):
+			prop.hit(Vector2(randf_range(-600, 600), -500), 200)
+		await get_tree().create_timer(8.0, true, false, true).timeout
+		print("SMOKE stage %d ok: p1 %d hp, p2 %d hp" % [st, p1.health, p2.health])
+	print("SMOKE PASSED")
+	get_tree().quit()
 
 
 func _set_stage(i: int) -> void:

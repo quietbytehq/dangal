@@ -41,9 +41,12 @@ jobs:
           godot --headless --import 2>&1 | tee import.log || true
           # load every script through the real engine and fail on any script error
           godot --headless --quit-after 3 2>&1 | tee run.log || true
-          if grep -h "SCRIPT ERROR" import.log run.log; then
+          # play CPU vs CPU on every stage for a few seconds (see main.gd _smoke_test)
+          timeout 120 godot --headless -- --smoke 2>&1 | tee smoke.log || true
+          if grep -h "SCRIPT ERROR" import.log run.log smoke.log; then
             echo "::error::GDScript errors found"; exit 1
           fi
+          grep -q "SMOKE PASSED" smoke.log || { echo "::error::smoke test did not finish"; exit 1; }
 
       - name: Export Linux
         run: |
