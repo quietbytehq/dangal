@@ -8,7 +8,13 @@ The character art and animation come from AI-generated video, cut frame by frame
 
 ## Download
 
-Get the latest Linux or Windows build from **[Releases](https://github.com/quietbytehq/neon-knuckle/releases)**, unzip it, and run `NeonKnuckle.x86_64` (Linux) or `NeonKnuckle.exe` (Windows).
+Get the latest build from **[Releases](https://github.com/quietbytehq/neon-knuckle/releases)**:
+
+| Platform | File | How |
+|---|---|---|
+| Linux (any distro) | `NeonKnuckle-<version>-x86_64.AppImage` | `chmod +x` it, then run it |
+| Ubuntu / Debian | `neon-knuckle_<version>_amd64.deb` | `sudo apt install ./neon-knuckle_<version>_amd64.deb`, then find **Neon Knuckle** in your apps |
+| Windows 10/11 | `NeonKnuckle-<version>-Setup.exe` | Run the installer; it adds Start Menu and desktop shortcuts and an uninstaller |
 
 To run it from source, open `project.godot` in Godot 4.5 and press **F5**.
 

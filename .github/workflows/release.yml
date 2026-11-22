@@ -1,6 +1,7 @@
 name: Build and release
 
-# Push a tag like v0.1.0 to build Linux + Windows and attach them to a GitHub release.
+# Push a tag like v0.1.0 to build the Linux AppImage + .deb and the Windows installer
+# and attach them to a GitHub release.
 on:
   push:
     tags: ["v*"]
@@ -58,22 +59,36 @@ jobs:
           mkdir -p build/windows
           godot --headless --export-release "Windows Desktop" build/windows/NeonKnuckle.exe
 
-      - name: Package
-        run: |
-          VER="${{ github.event.inputs.tag || github.ref_name }}"
-          cp LICENSE NOTICE README.md build/linux/ && cp LICENSE NOTICE README.md build/windows/
-          (cd build/linux && zip -r "../../NeonKnuckle-${VER}-linux-x86_64.zip" .)
-          (cd build/windows && zip -r "../../NeonKnuckle-${VER}-windows-x86_64.zip" .)
+      - name: Install packaging tools
+        run: apt-get install -y nsis curl file
 
-      - name: Upload build artifacts
+      - name: Build packages (AppImage, .deb, Windows installer)
+        run: |
+          # version from project.godot, e.g. 0.3.0
+          VER=$(grep -oP 'config/version="\K[^"]+' project.godot)
+          cp LICENSE NOTICE README.md build/linux/ && cp LICENSE NOTICE README.md build/windows/
+          bash packaging/build_packages.sh "$VER" "$PWD/dist"
+
+      - name: Upload Linux packages
         uses: actions/upload-artifact@v4
         with:
-          name: neon-knuckle-builds
-          path: NeonKnuckle-*.zip
+          name: neon-knuckle-linux
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: neon-knuckle-windows
+          path: dist/*-Setup.exe
 
       - name: Publish release
         if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tag != ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          files: NeonKnuckle-*.zip
+          files: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*-Setup.exe
