@@ -369,7 +369,7 @@ func _separate_from_opponent() -> void:
 	var min_gap := H * 0.38
 	var gap := position.x - opponent.position.x
 	if abs(gap) < min_gap:
-		var push := (min_gap - abs(gap)) * 0.5
+		var push: float = (min_gap - abs(gap)) * 0.5
 		position.x += push * (1.0 if gap >= 0.0 else -1.0)
 
 

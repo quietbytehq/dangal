@@ -276,7 +276,7 @@ func _cue(id: String, at: float) -> bool:
 
 func _process(delta: float) -> void:
 	# keep menus and timers in real time even during hit-stop
-	var real := delta / max(Engine.time_scale, 0.001)
+	var real: float = delta / max(Engine.time_scale, 0.001)
 	if paused:
 		_process_pause()
 		hud.queue_redraw()

@@ -36,8 +36,14 @@ jobs:
           fi
           ls "$HOME/.local/share/godot/export_templates"
 
-      - name: Import assets
-        run: godot --headless --import || true
+      - name: Import assets and check scripts
+        run: |
+          godot --headless --import 2>&1 | tee import.log || true
+          # load every script through the real engine and fail on any script error
+          godot --headless --quit-after 3 2>&1 | tee run.log || true
+          if grep -h "SCRIPT ERROR" import.log run.log; then
+            echo "::error::GDScript errors found"; exit 1
+          fi
 
       - name: Export Linux
         run: |
