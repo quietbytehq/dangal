@@ -1,21 +1,21 @@
-; Neon Knuckle Windows installer (built in CI with makensis on Linux)
-; makensis -DVERSION=0.3.0 -DSRC=build/windows -DOUT=NeonKnuckle-Setup.exe packaging/installer.nsi
+; Dangal Windows installer (built in CI with makensis on Linux)
+; makensis -DVERSION=0.3.0 -DSRC=build/windows -DOUT=Dangal-Setup.exe packaging/installer.nsi
 Unicode true
 SetCompressor /SOLID lzma
 RequestExecutionLevel admin
 !include "MUI2.nsh"
 
-!define APP "Neon Knuckle"
-!define REGKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\NeonKnuckle"
+!define APP "Dangal"
+!define REGKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Dangal"
 
 Name "${APP} ${VERSION}"
 OutFile "${OUT}"
 InstallDir "$PROGRAMFILES64\${APP}"
 InstallDirRegKey HKLM "${REGKEY}" "InstallLocation"
-!define MUI_ICON "neon-knuckle.ico"
-!define MUI_UNICON "neon-knuckle.ico"
-!define MUI_FINISHPAGE_RUN "$INSTDIR\NeonKnuckle.exe"
-!define MUI_FINISHPAGE_RUN_TEXT "Play Neon Knuckle now"
+!define MUI_ICON "dangal.ico"
+!define MUI_UNICON "dangal.ico"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\Dangal.exe"
+!define MUI_FINISHPAGE_RUN_TEXT "Play Dangal now"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "${SRC}\LICENSE"
@@ -29,16 +29,16 @@ InstallDirRegKey HKLM "${REGKEY}" "InstallLocation"
 Section "Install"
   SetOutPath "$INSTDIR"
   File /r "${SRC}\*.*"
-  File "neon-knuckle.ico"
+  File "dangal.ico"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateDirectory "$SMPROGRAMS\${APP}"
-  CreateShortcut "$SMPROGRAMS\${APP}\${APP}.lnk" "$INSTDIR\NeonKnuckle.exe" "" "$INSTDIR\neon-knuckle.ico"
+  CreateShortcut "$SMPROGRAMS\${APP}\${APP}.lnk" "$INSTDIR\Dangal.exe" "" "$INSTDIR\dangal.ico"
   CreateShortcut "$SMPROGRAMS\${APP}\Uninstall ${APP}.lnk" "$INSTDIR\Uninstall.exe"
-  CreateShortcut "$DESKTOP\${APP}.lnk" "$INSTDIR\NeonKnuckle.exe" "" "$INSTDIR\neon-knuckle.ico"
+  CreateShortcut "$DESKTOP\${APP}.lnk" "$INSTDIR\Dangal.exe" "" "$INSTDIR\dangal.ico"
   WriteRegStr HKLM "${REGKEY}" "DisplayName" "${APP}"
   WriteRegStr HKLM "${REGKEY}" "DisplayVersion" "${VERSION}"
   WriteRegStr HKLM "${REGKEY}" "Publisher" "QuietByte"
-  WriteRegStr HKLM "${REGKEY}" "DisplayIcon" "$INSTDIR\neon-knuckle.ico"
+  WriteRegStr HKLM "${REGKEY}" "DisplayIcon" "$INSTDIR\dangal.ico"
   WriteRegStr HKLM "${REGKEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "${REGKEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "${REGKEY}" "URLInfoAbout" "https://github.com/quietbytehq/neon-knuckle"

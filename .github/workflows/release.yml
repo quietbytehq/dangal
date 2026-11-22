@@ -52,12 +52,12 @@ jobs:
       - name: Export Linux
         run: |
           mkdir -p build/linux
-          godot --headless --export-release "Linux" build/linux/NeonKnuckle.x86_64
+          godot --headless --export-release "Linux" build/linux/Dangal.x86_64
 
       - name: Export Windows
         run: |
           mkdir -p build/windows
-          godot --headless --export-release "Windows Desktop" build/windows/NeonKnuckle.exe
+          godot --headless --export-release "Windows Desktop" build/windows/Dangal.exe
 
       - name: Install packaging tools
         run: apt-get install -y nsis curl file
@@ -72,7 +72,7 @@ jobs:
       - name: Upload Linux packages
         uses: actions/upload-artifact@v4
         with:
-          name: neon-knuckle-linux
+          name: dangal-linux
           path: |
             dist/*.AppImage
             dist/*.deb
@@ -80,7 +80,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: neon-knuckle-windows
+          name: dangal-windows
           path: dist/*-Setup.exe
 
       - name: Publish release

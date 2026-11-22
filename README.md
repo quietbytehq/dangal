@@ -1,8 +1,10 @@
-# Neon Knuckle
+<img src="icon.png" width="128" align="right" alt="Dangal icon">
 
-A 2D arcade fighting game set in Pakistan, made in Godot 4.5. Two fighters, two animated stages, full voice acting, ultra moves with cinematic cut-ins, pre-fight call-outs, post-fight taunts, and breakable stage props.
+# Dangal
 
-![Neon Knuckle — Hunza Valley](docs/art_hunza.png)
+*Dangal* means a wrestling bout. It's a 2D arcade fighting game set in Pakistan, made in Godot 4.5, with two fighters, two animated stages, full voice acting, ultra moves with cinematic cut-ins, pre-fight call-outs, post-fight taunts, and breakable stage props.
+
+![Dangal — Hunza Valley](docs/art_hunza.png)
 
 The character art and animation come from AI-generated video, cut frame by frame into sprite sheets. The voices, announcer, sound effects and music were generated with ElevenLabs. The fighters and stages are original to this game.
 
@@ -12,9 +14,9 @@ Get the latest build from **[Releases](https://github.com/quietbytehq/neon-knuck
 
 | Platform | File | How |
 |---|---|---|
-| Linux (any distro) | `NeonKnuckle-<version>-x86_64.AppImage` | `chmod +x` it, then run it |
-| Ubuntu / Debian | `neon-knuckle_<version>_amd64.deb` | `sudo apt install ./neon-knuckle_<version>_amd64.deb`, then find **Neon Knuckle** in your apps |
-| Windows 10/11 | `NeonKnuckle-<version>-Setup.exe` | Run the installer; it adds Start Menu and desktop shortcuts and an uninstaller |
+| Linux (any distro) | `Dangal-<version>-x86_64.AppImage` | `chmod +x` it, then run it |
+| Ubuntu / Debian | `dangal_<version>_amd64.deb` | `sudo apt install ./dangal_<version>_amd64.deb`, then find **Dangal** in your apps |
+| Windows 10/11 | `Dangal-<version>-Setup.exe` | Run the installer; it adds Start Menu and desktop shortcuts and an uninstaller |
 
 To run it from source, open `project.godot` in Godot 4.5 and press **F5**.
 

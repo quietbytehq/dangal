@@ -1,11 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=Neon Knuckle
+Name=Dangal
 GenericName=Fighting Game
 Comment=2D arcade fighting game: Rustam of Karachi vs Baba Sher of Hunza
-Exec=neon-knuckle
-Icon=neon-knuckle
+Exec=dangal
+Icon=dangal
 Terminal=false
 Categories=Game;ActionGame;
 Keywords=fighting;arcade;street;fighter;
-StartupWMClass=Neon Knuckle
+StartupWMClass=Dangal

@@ -1,10 +1,10 @@
 extends Node2D
-## NEON KNUCKLE — game flow:
+## DANGAL — game flow:
 ## title -> character select -> stage select -> versus close-ups -> rounds (intro, fight, ko)
 ## -> victory close-ups. Also: pause menu, hit-stop, combo counter, ultra meter + cut-in,
 ## animated stage backgrounds, CPU difficulty.
 
-const GAME_TITLE := "NEON KNUCKLE"
+const GAME_TITLE := "DANGAL"
 const FLOOR_Y := 640.0
 const ROUND_TIME := 99.0
 const WINS_NEEDED := 2
