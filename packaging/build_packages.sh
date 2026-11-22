@@ -36,7 +36,7 @@ Installed-Size: $SIZE
 Depends: libc6, libx11-6, libxcursor1, libxinerama1, libxrandr2, libxi6, libgl1
 Recommends: libpulse0 | libasound2t64 | libasound2
 Maintainer: Quiet Byte <quietbyte.2026@gmail.com>
-Homepage: https://github.com/quietbytehq/neon-knuckle
+Homepage: https://github.com/quietbytehq/dangal
 Description: Dangal - 2D arcade fighting game
  Rustam of Karachi vs Baba Sher of Hunza. Two fighters, two animated stages,
  specials, ultras, full voice acting and breakable stage props.

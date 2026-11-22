@@ -41,7 +41,7 @@ Section "Install"
   WriteRegStr HKLM "${REGKEY}" "DisplayIcon" "$INSTDIR\dangal.ico"
   WriteRegStr HKLM "${REGKEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKLM "${REGKEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-  WriteRegStr HKLM "${REGKEY}" "URLInfoAbout" "https://github.com/quietbytehq/neon-knuckle"
+  WriteRegStr HKLM "${REGKEY}" "URLInfoAbout" "https://github.com/quietbytehq/dangal"
   WriteRegDWORD HKLM "${REGKEY}" "NoModify" 1
   WriteRegDWORD HKLM "${REGKEY}" "NoRepair" 1
 SectionEnd

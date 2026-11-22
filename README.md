@@ -10,7 +10,7 @@ The character art and animation come from AI-generated video, cut frame by frame
 
 ## Download
 
-Get the latest build from **[Releases](https://github.com/quietbytehq/neon-knuckle/releases)**:
+Get the latest build from **[Releases](https://github.com/quietbytehq/dangal/releases)**:
 
 | Platform | File | How |
 |---|---|---|
