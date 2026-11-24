@@ -20,6 +20,7 @@ const CROUCH_POSE := 0.22     # where in the crouch-kick clip the crouch pose si
 const GUARD_POSE := 0.45      # where in the block clips the guard is fully up
 const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48}   # where each victory clip hits its pose
 const METER_MAX := 100.0
+const EXTRA_JUMP := 0.55      # extra jump height on top of the clip's own, in body heights
 const WALK_BOOST := 1.2       # extra walking speed on top of the global game speed
 const JUMP_DRIFT := 2.1       # sideways jump speed, in walk speeds: enough to jump over the opponent
 
@@ -228,6 +229,7 @@ func _physics_process(delta: float) -> void:
 
 	flash = max(flash - delta, 0.0)
 	_update_tint()
+	_visual.position.y = -_extra_lift()
 	_cpu_pressed.clear()
 
 
@@ -344,11 +346,19 @@ func _airborne(delta: float) -> void:
 
 
 func _jump_lift() -> float:
-	## How far above the floor the body is right now, following the clip's arc.
+	## How far above the floor the body is right now: the clip's own arc plus the extra lift.
 	if not state in AIR_STATES:
 		return 0.0
 	var p := clampf((_progress() - 0.15) / 0.7, 0.0, 1.0)
-	return sin(p * PI) * H * 0.75
+	return sin(p * PI) * H * (0.75 + EXTRA_JUMP)
+
+
+## The part of the jump height the clip doesn't contain: the sprite is raised by this much.
+func _extra_lift() -> float:
+	if not state in AIR_STATES:
+		return 0.0
+	var p := clampf((_progress() - 0.15) / 0.7, 0.0, 1.0)
+	return sin(p * PI) * H * EXTRA_JUMP
 
 
 func _start_attack(atk_name: String) -> void:

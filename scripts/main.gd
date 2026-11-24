@@ -60,6 +60,8 @@ var world: Node2D
 var bg: Sprite2D
 var bg_video: VideoStreamPlayer
 var ambience: Ambience
+var title_show: TitleShow
+var _icon_tex: Texture2D
 var _portraits := {}
 var _ultra_user: Fighter
 var _ultra_t := -1.0
@@ -110,6 +112,7 @@ func _ready() -> void:
 	# code-drawn life on top of the background: kites, birds, petals, lights
 	ambience = Ambience.new()
 	world.add_child(ambience)
+	_icon_tex = load("res://icon.png") if ResourceLoader.exists("res://icon.png") else null
 	for st in STAGES:
 		var path: String = st["image"]
 		_stage_tex[path] = load(path) if ResourceLoader.exists(path) else null
@@ -182,6 +185,10 @@ func _shots() -> void:
 		await get_tree().create_timer(sec, true, false, true).timeout
 	await wait.call(1.0)
 	await snap.call("title")
+	await wait.call(1.6)
+	await snap.call("title_b")
+	await wait.call(1.3)
+	await snap.call("title_c")
 	_open_help()
 	await wait.call(0.2)
 	await snap.call("help_controls")
@@ -279,7 +286,15 @@ func _enter_title() -> void:
 	phase_time = 0.0
 	_menu_idx = 0
 	_set_stage(randi() % STAGES.size())
-	Sound.play_music(STAGES[stage_idx]["music"])
+	# attract mode: the two fighters trade blows behind the menu
+	title_show = TitleShow.new()
+	world.add_child(title_show)
+	title_show.setup(_sprite_cache[Characters.ROSTER[0]], _sprite_cache[Characters.ROSTER[1]])
+	title_show.impact.connect(func(amount: float): shake = max(shake, amount))
+	if ResourceLoader.exists("res://assets/audio/music/title.ogg"):
+		Sound.play_music("title")
+	else:
+		Sound.play_music(STAGES[stage_idx]["music"])
 	Sound.music_volume(-12.0)
 
 
@@ -318,6 +333,9 @@ func _process_title() -> void:
 
 func _clear_match() -> void:
 	_set_paused(false)
+	if title_show:
+		title_show.queue_free()
+		title_show = null
 	_ultra_t = -1.0
 	_ultra_user = null
 	_champ = null
@@ -845,25 +863,60 @@ func _draw_hud() -> void:
 
 
 func _draw_title(font: Font) -> void:
-	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.03, 0.01, 0.08, 0.78))
-	# flickering neon sign
-	var flick := 1.0 if fmod(phase_time, 4.0) > 0.12 or fmod(phase_time * 30.0, 2.0) > 1.0 else 0.35
-	_neon(font, Vector2(0, 230), GAME_TITLE, 110, Color(1.0, 0.2, 0.75, flick))
-	_neon(font, Vector2(0, 290), "KARACHI  VS  HUNZA", 26, Color(0.3, 0.9, 1.0, 0.9))
+	# darken top and bottom, keep the fight on the right readable
+	for i in 12:
+		var a := 0.06 * (12 - i)
+		hud.draw_rect(Rect2(0, i * 12, 1280, 12), Color(0.02, 0.0, 0.05, a))
+		hud.draw_rect(Rect2(0, 720 - (i + 1) * 12, 1280, 12), Color(0.02, 0.0, 0.05, a))
+	# left panel for the menu, slanted neon edge
+	var panel := PackedVector2Array([Vector2(0, 0), Vector2(600, 0), Vector2(470, 720), Vector2(0, 720)])
+	hud.draw_colored_polygon(panel, Color(0.03, 0.01, 0.08, 0.72))
+	hud.draw_line(Vector2(600, 0), Vector2(470, 720), Color(1, 0.3, 0.75, 0.9), 4.0)
+	hud.draw_line(Vector2(612, 0), Vector2(482, 720), Color(0.3, 0.9, 1.0, 0.5), 2.0)
+
+	# logo slams in, then pulses
+	var t := phase_time
+	var slam: float = clamp(t / 0.35, 0.0, 1.0)
+	var sc: float = lerp(2.6, 1.0, 1.0 - pow(1.0 - slam, 3.0)) + 0.025 * sin(t * 6.0) * float(slam >= 1.0)
+	var logo_at := Vector2(290, 150)
+	if _icon_tex:
+		var isz := 150.0 * sc
+		hud.draw_texture_rect(_icon_tex, Rect2(logo_at - Vector2(isz, isz) * 0.5 + Vector2(0, -10), Vector2(isz, isz)),
+				false, Color(1, 1, 1, 0.9 * slam))
+	hud.draw_set_transform(logo_at, -0.06, Vector2(sc, sc))
+	var fire: Array[Color] = [Color(1, 0.15, 0.05), Color(1, 0.45, 0.05), Color(1, 0.85, 0.2)]
+	for k in 3:
+		var o := Vector2(0, (2 - k) * 4)
+		for d in [Vector2(-4, 0), Vector2(4, 0), Vector2(0, -4), Vector2(0, 4)]:
+			hud.draw_string(font, Vector2(-300, 70) + o + d, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 120,
+					Color(0, 0, 0, 0.6 * slam))
+		hud.draw_string(font, Vector2(-300, 70) + o, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 120,
+				Color(fire[k].r, fire[k].g, fire[k].b, slam))
+	hud.draw_string(font, Vector2(-300, 70), GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 120,
+			Color(1, 1, 0.85, 0.35 * slam))
+	hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if slam >= 1.0 and t < 0.6:
+		hud.draw_rect(Rect2(0, 0, 1280, 720), Color(1, 0.8, 0.5, (0.6 - t) * 1.5))
+	_neon(font, Vector2(0, 268), "STREET FIGHTS  ·  KARACHI  VS  HUNZA", 20, Color(0.3, 0.9, 1.0, 0.9), 580)
 
 	for i in TITLE_ITEMS.size():
 		var label: String = TITLE_ITEMS[i]
 		if label == "CPU":
 			label = "CPU LEVEL:  < %s >" % LEVELS[cpu_level]
 		var sel := i == _menu_idx
-		var col := Color(0.3, 0.95, 1.0) if sel else Color(0.75, 0.75, 0.85)
-		var y := 390.0 + i * 52.0
+		var y := 350.0 + i * 54.0
+		var x := 60.0 - i * 9.0      # follow the slanted panel edge
 		if sel:
-			_neon(font, Vector2(0, y), "»  " + label + "  «", 34, col)
+			var bar := PackedVector2Array([Vector2(x - 20, y - 36), Vector2(x + 440, y - 36),
+					Vector2(x + 425, y + 12), Vector2(x - 35, y + 12)])
+			hud.draw_colored_polygon(bar, Color(1, 0.3, 0.75, 0.25 + 0.1 * sin(t * 8.0)))
+			_neon(font, Vector2(x, y), "» " + label, 34, Color(1, 0.95, 0.6), 440, HORIZONTAL_ALIGNMENT_LEFT)
 		else:
-			hud.draw_string(font, Vector2(0, y), label, HORIZONTAL_ALIGNMENT_CENTER, 1280, 30, col)
-	_outlined(font, Vector2(0, 680), "↑/↓ choose    ←/→ change    Punch / Enter: select", 18, Color(1, 1, 1, 0.7))
-	hud.draw_string(font, Vector2(0, 708), "a QuietByte game", HORIZONTAL_ALIGNMENT_CENTER, 1280, 14, Color(1, 1, 1, 0.4))
+			hud.draw_string(font, Vector2(x, y), label, HORIZONTAL_ALIGNMENT_LEFT, 440, 28, Color(0.78, 0.78, 0.9))
+	var blink := 0.45 + 0.35 * sin(t * 4.0)
+	hud.draw_string(font, Vector2(30, 680), "↑/↓ choose    ←/→ change    Punch / Enter: select",
+			HORIZONTAL_ALIGNMENT_LEFT, 460, 17, Color(1, 1, 1, blink + 0.2))
+	hud.draw_string(font, Vector2(30, 708), "a QuietByte game", HORIZONTAL_ALIGNMENT_LEFT, 460, 14, Color(1, 1, 1, 0.4))
 
 
 func _draw_select(font: Font) -> void:
