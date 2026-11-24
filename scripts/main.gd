@@ -175,6 +175,7 @@ func _shots() -> void:
 	var args := OS.get_cmdline_user_args()
 	var dir: String = args[args.find("--shots") + 1] if args.size() > args.find("--shots") + 1 else "/tmp/shots"
 	DirAccess.make_dir_recursive_absolute(dir)
+	_enter_title()
 	_shot_n = 0
 	var snap := func(label: String) -> void:
 		await RenderingServer.frame_post_draw
@@ -878,21 +879,21 @@ func _draw_title(font: Font) -> void:
 	var t := phase_time
 	var slam: float = clamp(t / 0.35, 0.0, 1.0)
 	var sc: float = lerp(2.6, 1.0, 1.0 - pow(1.0 - slam, 3.0)) + 0.025 * sin(t * 6.0) * float(slam >= 1.0)
-	var logo_at := Vector2(290, 150)
+	var logo_at := Vector2(335, 150)
 	if _icon_tex:
-		var isz := 150.0 * sc
-		hud.draw_texture_rect(_icon_tex, Rect2(logo_at - Vector2(isz, isz) * 0.5 + Vector2(0, -10), Vector2(isz, isz)),
-				false, Color(1, 1, 1, 0.9 * slam))
+		var isz := 112.0 * sc
+		hud.draw_texture_rect(_icon_tex, Rect2(Vector2(84, 132) - Vector2(isz, isz) * 0.5, Vector2(isz, isz)),
+				false, Color(1, 1, 1, slam))
 	hud.draw_set_transform(logo_at, -0.06, Vector2(sc, sc))
 	var fire: Array[Color] = [Color(1, 0.15, 0.05), Color(1, 0.45, 0.05), Color(1, 0.85, 0.2)]
 	for k in 3:
 		var o := Vector2(0, (2 - k) * 4)
 		for d in [Vector2(-4, 0), Vector2(4, 0), Vector2(0, -4), Vector2(0, 4)]:
-			hud.draw_string(font, Vector2(-300, 70) + o + d, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 120,
+			hud.draw_string(font, Vector2(-300, 70) + o + d, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 104,
 					Color(0, 0, 0, 0.6 * slam))
-		hud.draw_string(font, Vector2(-300, 70) + o, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 120,
+		hud.draw_string(font, Vector2(-300, 70) + o, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 104,
 				Color(fire[k].r, fire[k].g, fire[k].b, slam))
-	hud.draw_string(font, Vector2(-300, 70), GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 120,
+	hud.draw_string(font, Vector2(-300, 70), GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 104,
 			Color(1, 1, 0.85, 0.35 * slam))
 	hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if slam >= 1.0 and t < 0.6:

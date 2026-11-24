@@ -20,7 +20,7 @@ const CROUCH_POSE := 0.22     # where in the crouch-kick clip the crouch pose si
 const GUARD_POSE := 0.45      # where in the block clips the guard is fully up
 const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48}   # where each victory clip hits its pose
 const METER_MAX := 100.0
-const EXTRA_JUMP := 0.55      # extra jump height on top of the clip's own, in body heights
+const EXTRA_JUMP := 0.4       # extra jump height on top of the clip's own, in body heights
 const WALK_BOOST := 1.2       # extra walking speed on top of the global game speed
 const JUMP_DRIFT := 2.1       # sideways jump speed, in walk speeds: enough to jump over the opponent
 
