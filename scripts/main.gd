@@ -208,6 +208,25 @@ func _shots() -> void:
 		await wait.call(1.6)
 		await snap.call("s%d_intro_b" % st)
 		await wait.call(1.2)
+		print("SHOTS stage %d video playing=%s pos=%.2f" % [st, bg_video.is_playing(), bg_video.stream_position])
+		if st == 0:
+			# scripted cross-up: player 1 jumps over a standing player 2
+			p2.locked = true
+			p1.locked = true
+			p1.position.x = p2.position.x - 260.0
+			var before := "p1 x=%d facing=%d | p2 x=%d" % [p1.position.x, p1.facing, p2.position.x]
+			p1.state = "jump"
+			p1.vel = Vector2(p1.facing * p1.walk_speed * Fighter.JUMP_DRIFT, 0.0)
+			p1._play("jump", p1._length("jump") / Fighter.JUMP_TIME)
+			await wait.call(0.35)
+			await snap.call("s0_jump_over_mid")
+			await wait.call(0.9)
+			p1.locked = false
+			p2.locked = false
+			await wait.call(0.2)
+			await snap.call("s0_jump_over_landed")
+			print("SHOTS cross-up before: %s  after: p1 x=%d facing=%d | p2 x=%d facing=%d" % [
+					before, p1.position.x, p1.facing, p2.position.x, p2.facing])
 		for k in 6:
 			if k == 3:
 				p1.meter = 100.0
@@ -215,6 +234,7 @@ func _shots() -> void:
 			await wait.call(1.0)
 		# finish the match: player 1 already has a round, knock player 2 out
 		wins[1] = WINS_NEEDED - 1
+		p2.locked = true      # can't block this one
 		p2.take_hit(5000, 300.0, 0.5, p1.facing)
 		await wait.call(0.6)
 		await snap.call("s%d_ko" % st)
@@ -632,7 +652,7 @@ func _process_help() -> void:
 
 
 func _draw_help(font: Font) -> void:
-	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.02, 0.01, 0.05, 0.93))
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.02, 0.01, 0.05, 0.98))
 	_neon(font, Vector2(0, 80), "HOW TO PLAY", 56, Color(1, 0.3, 0.8))
 	var tabs: Array[String] = ["CONTROLS", "MOVES"]
 	for i in 2:
@@ -958,10 +978,13 @@ func _portrait(id: String, kind: String, r: Rect2, mirror: bool, tint := Color.W
 	var s: float = max(r.size.x / ts.x, r.size.y / ts.y)
 	var src_size := r.size / s
 	var src := Rect2((ts - src_size) * 0.5, src_size)
-	var dst := r
 	if mirror:
-		dst = Rect2(r.position.x + r.size.x, r.position.y, -r.size.x, r.size.y)
-	hud.draw_texture_rect_region(tex, dst, src, tint)
+		# flip with a transform: a negative-width rect draws nothing
+		hud.draw_set_transform(Vector2(r.position.x + r.size.x, r.position.y), 0.0, Vector2(-1, 1))
+		hud.draw_texture_rect_region(tex, Rect2(Vector2.ZERO, r.size), src, tint)
+		hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		hud.draw_texture_rect_region(tex, r, src, tint)
 
 
 func _speech(font: Font, at: Vector2, text: String, width: float, col: Color) -> void:
