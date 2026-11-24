@@ -32,7 +32,7 @@ func setup(stage_idx: int) -> void:
 					"phase": randf() * TAU, "speed": randf_range(0.6, 3.0), "col": Color(1, 0.85, 0.5)})
 		# fairy-light string, top left
 		for i in 14:
-			var x := 10.0 + i * 26.0
+			var x: float = 10.0 + i * 26.0
 			_twinkles.append({"p": Vector2(x, 140.0 + sin(i * 0.9) * 8.0), "phase": randf() * TAU,
 					"speed": randf_range(2.0, 5.0), "big": true,
 					"col": [Color(1, 0.3, 0.3), Color(0.3, 1, 0.5), Color(0.4, 0.6, 1), Color(1, 0.85, 0.3)][i % 4]})
@@ -55,7 +55,7 @@ func setup(stage_idx: int) -> void:
 
 
 func _new_bird(crow: bool) -> Dictionary:
-	var left := randf() < 0.5
+	var left: bool = randf() < 0.5
 	return {"kind": "crow" if crow else "eagle", "x": -40.0 if left else 1320.0,
 			"y": randf_range(40, 220), "vx": (1.0 if left else -1.0) * randf_range(60, 110),
 			"phase": randf() * TAU, "wait": randf_range(0, 9), "cx": randf_range(500, 900),
@@ -64,8 +64,8 @@ func _new_bird(crow: bool) -> Dictionary:
 
 func _new_petal(anywhere: bool) -> Dictionary:
 	# blossom trees stand at the left and right edges of the courtyard
-	var from_left := randf() < 0.7
-	var x := randf_range(0, 380) if from_left else randf_range(1150, 1280)
+	var from_left: bool = randf() < 0.7
+	var x: float = randf_range(0, 380) if from_left else randf_range(1150, 1280)
 	return {"kind": "petal", "x": x, "y": randf_range(0, 650) if anywhere else randf_range(60, 380),
 			"vx": randf_range(10, 45) * (1.0 if from_left else -1.0), "vy": randf_range(25, 55),
 			"phase": randf() * TAU, "spin": randf_range(2, 6),
@@ -122,28 +122,28 @@ func _draw() -> void:
 	if stage == 0:
 		# sea glint under the moon
 		for i in 6:
-			var x := 1040.0 + i * 38.0 + sin(t * 0.7 + i) * 10.0
-			var a := 0.25 + 0.25 * sin(t * 2.3 + i * 1.7)
+			var x: float = 1040.0 + i * 38.0 + sin(t * 0.7 + i) * 10.0
+			var a: float = 0.25 + 0.25 * sin(t * 2.3 + i * 1.7)
 			draw_line(Vector2(x, 236 + i % 2 * 6), Vector2(x + 20, 236 + i % 2 * 6), Color(1, 1, 0.85, a), 2.0)
 		# a plane crossing high up, blinking
-		var blink := 1.0 if fmod(t, 1.2) < 0.15 else 0.25
+		var blink: float = 1.0 if fmod(t, 1.2) < 0.15 else 0.25
 		draw_circle(Vector2(_plane_x, 46), 2.5, Color(1, 0.2, 0.2, blink))
 		draw_circle(Vector2(_plane_x + 8, 46), 1.5, Color(1, 1, 1, 0.7))
 	for it in _items:
 		match it["kind"]:
 			"kite":
-				var bob := sin(t * 1.4 + it["phase"]) * 10.0
-				var sway := sin(t * 0.9 + it["phase"]) * 0.25
-				var p := Vector2(it["x"], it["y"] + bob)
+				var bob: float = sin(t * 1.4 + it["phase"]) * 10.0
+				var sway: float = sin(t * 0.9 + it["phase"]) * 0.25
+				var p: Vector2 = Vector2(it["x"], it["y"] + bob)
 				var s: float = it["size"]
-				var pts := PackedVector2Array([p + Vector2(0, -s).rotated(sway), p + Vector2(s * 0.8, 0).rotated(sway),
+				var pts: PackedVector2Array = PackedVector2Array([p + Vector2(0, -s).rotated(sway), p + Vector2(s * 0.8, 0).rotated(sway),
 						p + Vector2(0, s).rotated(sway), p + Vector2(-s * 0.8, 0).rotated(sway)])
 				var c: Color = it["col"]
 				draw_colored_polygon(pts, Color(c.r, c.g, c.b, 0.85))
 				# tail and string
-				var tail := pts[2]
+				var tail: Vector2 = pts[2]
 				for k in 5:
-					var q := tail + Vector2(sin(t * 3.0 + k + it["phase"]) * 5.0, k * 7.0)
+					var q: Vector2 = tail + Vector2(sin(t * 3.0 + k + it["phase"]) * 5.0, k * 7.0)
 					draw_line(tail, q, Color(c.r, c.g, c.b, 0.6), 1.5)
 					tail = q
 				draw_line(pts[2], pts[2] + Vector2(-140, 300), Color(1, 1, 1, 0.12), 1.0)
@@ -152,7 +152,7 @@ func _draw() -> void:
 					_draw_bird(Vector2(it["x"], it["y"] + sin(t * 2.0 + it["phase"]) * 6.0), 9.0,
 							t * 9.0 + it["phase"], Color(0.05, 0.05, 0.08, 0.9))
 			"eagle":
-				var c := Vector2(it["cx"], 120.0) + Vector2(cos(it["phase"]), sin(it["phase"]) * 0.35) * it["r"]
+				var c: Vector2 = Vector2(it["cx"], 120.0) + Vector2(cos(it["phase"]), sin(it["phase"]) * 0.35) * it["r"]
 				_draw_bird(c, 13.0, t * 2.5 + it["phase"], Color(0.15, 0.1, 0.08, 0.8))
 			"cloud":
 				var a: float = it["a"]
@@ -163,17 +163,17 @@ func _draw() -> void:
 			"petal":
 				var r: float = 3.5
 				var ang: float = t * it["spin"] + it["phase"]
-				var p := Vector2(it["x"], it["y"])
+				var p: Vector2 = Vector2(it["x"], it["y"])
 				draw_set_transform(p, ang, Vector2(1.0, 0.45 + 0.4 * abs(sin(ang))))
 				draw_circle(Vector2.ZERO, r, it["col"])
 				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			"mote":
-				var a := 0.25 + 0.25 * sin(t * 1.5 + it["phase"])
+				var a: float = 0.25 + 0.25 * sin(t * 1.5 + it["phase"])
 				draw_circle(Vector2(it["x"] + sin(t * 0.8 + it["phase"]) * 12.0, it["y"]), 1.6,
 						Color(1, 0.9, 0.6, a))
 
 
 func _draw_bird(p: Vector2, s: float, flap: float, col: Color) -> void:
-	var w := sin(flap) * 0.6
+	var w: float = sin(flap) * 0.6
 	draw_line(p, p + Vector2(-s, -s * w), col, 2.0)
 	draw_line(p, p + Vector2(s, -s * w), col, 2.0)

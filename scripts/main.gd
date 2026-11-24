@@ -65,6 +65,7 @@ var _ultra_user: Fighter
 var _ultra_t := -1.0
 var _champ: Fighter
 var _help_open := false
+var _shot_n := 0
 var _help_page := 0
 var p2_cpu := true
 var cpu_level := 1
@@ -171,16 +172,23 @@ func _shots() -> void:
 	var args := OS.get_cmdline_user_args()
 	var dir: String = args[args.find("--shots") + 1] if args.size() > args.find("--shots") + 1 else "/tmp/shots"
 	DirAccess.make_dir_recursive_absolute(dir)
-	var n := 0
+	_shot_n = 0
 	var snap := func(label: String) -> void:
 		await RenderingServer.frame_post_draw
 		var img := get_viewport().get_texture().get_image()
-		img.save_png("%s/%02d_%s.png" % [dir, n, label])
-		n += 1
+		img.save_png("%s/%02d_%s.png" % [dir, _shot_n, label])
+		_shot_n += 1
 	var wait := func(sec: float) -> void:
 		await get_tree().create_timer(sec, true, false, true).timeout
 	await wait.call(1.0)
 	await snap.call("title")
+	_open_help()
+	await wait.call(0.2)
+	await snap.call("help_controls")
+	_help_page = 1
+	await wait.call(0.2)
+	await snap.call("help_moves")
+	_help_open = false
 	for st in STAGES.size():
 		_clear_match()
 		_set_stage(st)
@@ -216,7 +224,7 @@ func _shots() -> void:
 		await snap.call("s%d_victory_a" % st)
 		await wait.call(3.5)
 		await snap.call("s%d_victory_b" % st)
-	print("SHOTS DONE %d" % n)
+	print("SHOTS DONE %d" % _shot_n)
 	get_tree().quit()
 
 
@@ -626,14 +634,14 @@ func _process_help() -> void:
 func _draw_help(font: Font) -> void:
 	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.02, 0.01, 0.05, 0.93))
 	_neon(font, Vector2(0, 80), "HOW TO PLAY", 56, Color(1, 0.3, 0.8))
-	var tabs := ["CONTROLS", "MOVES"]
+	var tabs: Array[String] = ["CONTROLS", "MOVES"]
 	for i in 2:
 		var col := Color(1, 0.85, 0.3) if i == _help_page else Color(1, 1, 1, 0.35)
 		hud.draw_string(font, Vector2(340 + i * 360, 130), tabs[i], HORIZONTAL_ALIGNMENT_CENTER, 240, 26, col)
 	hud.draw_line(Vector2(340 + _help_page * 360, 140), Vector2(580 + _help_page * 360, 140), Color(1, 0.85, 0.3), 3.0)
 	if _help_page == 0:
-		var cols := [90.0, 470.0, 700.0, 930.0]
-		var heads := ["", "PLAYER 1", "PLAYER 2", "JOYPAD"]
+		var cols: Array[float] = [90.0, 470.0, 700.0, 930.0]
+		var heads: Array[String] = ["", "PLAYER 1", "PLAYER 2", "JOYPAD"]
 		for c in 4:
 			hud.draw_string(font, Vector2(cols[c], 200), heads[c], HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
 					Color(0.3, 0.9, 1.0))
