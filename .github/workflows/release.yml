@@ -58,6 +58,14 @@ jobs:
           timeout 240 xvfb-run -a -s "-screen 0 1280x720x24" \
             godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 -- --shots "$PWD/shots" 2>&1 | tail -20
           ls shots | head -50
+          # contact sheets printed into the log (artifact downloads may be blocked for reviewers)
+          apt-get install -y imagemagick >/dev/null
+          ls shots/*.png | head -16 > /tmp/a.txt; ls shots/*.png | tail -n +17 > /tmp/b.txt
+          for part in a b; do
+            [ -s /tmp/$part.txt ] || continue
+            montage $(cat /tmp/$part.txt) -tile 4x -geometry 480x270+2+2 -background black -quality 72 sheet_$part.jpg
+            echo "SHEET_BEGIN_$part"; base64 -w0 sheet_$part.jpg; echo; echo "SHEET_END_$part"
+          done
 
       - name: Upload screenshots
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag == ''
