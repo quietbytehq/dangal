@@ -118,7 +118,7 @@ func _hit() -> void:
 	if _pending_fx != "" and Vfx.available(_pending_fx):
 		var at := center if _pending_fx == "fire_burst" else Vector2(center.x, FLOOR)
 		Vfx.spawn(self, _pending_fx, at, 0.9, false, 6)
-	var strong := d[1] == "hit"
+	var strong: bool = d[1] == "hit"
 	_flash = 0.5 if strong else 0.25
 	Sound.sfx("punch" if strong else "block", -12.0)
 	impact.emit(10.0 if strong else 4.0)
