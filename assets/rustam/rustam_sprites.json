@@ -1,10 +1,10 @@
 {
   "frame_width": 640,
-  "frame_height": 502,
+  "frame_height": 512,
   "fps": 12,
   "feet_anchor": {
     "x": 314,
-    "y": 491
+    "y": 500
   },
   "body_height": 346,
   "animations": {
@@ -104,6 +104,13 @@
       "frames": 49,
       "columns": 8,
       "rows": 7,
+      "loop": false
+    },
+    "victory": {
+      "file": "rustam_victory.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
       "loop": false
     },
     "hit": {

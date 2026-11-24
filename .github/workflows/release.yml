@@ -63,8 +63,8 @@ jobs:
           ls shots/*.png | head -16 > /tmp/a.txt; ls shots/*.png | tail -n +17 > /tmp/b.txt
           for part in a b; do
             [ -s /tmp/$part.txt ] || continue
-            montage $(cat /tmp/$part.txt) -tile 4x -geometry 480x270+2+2 -background black -quality 72 sheet_$part.jpg
-            echo "SHEET_BEGIN_$part"; base64 -w0 sheet_$part.jpg; echo; echo "SHEET_END_$part"
+            montage $(cat /tmp/$part.txt) -tile 4x -geometry 440x248+2+2 -background black -quality 68 sheet_$part.jpg
+            echo "SHEET_BEGIN_$part"; base64 -w 2000 sheet_$part.jpg; echo "SHEET_END_$part"
           done
 
       - name: Upload screenshots
