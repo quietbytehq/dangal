@@ -100,6 +100,8 @@ func _ready() -> void:
 
 	if "--smoke" in OS.get_cmdline_user_args():
 		_smoke_test()
+	elif "--shots" in OS.get_cmdline_user_args():
+		_shots()
 	else:
 		_enter_title()
 
@@ -128,6 +130,61 @@ func _smoke_test() -> void:
 		await get_tree().create_timer(8.0, true, false, true).timeout
 		print("SMOKE stage %d ok: p1 %d hp, p2 %d hp" % [st, p1.health, p2.health])
 	print("SMOKE PASSED")
+	get_tree().quit()
+
+
+## CI screenshot tour (needs a real renderer, e.g. under xvfb): plays the real flow
+## CPU vs CPU and saves PNGs to the folder given after --shots.
+func _shots() -> void:
+	var args := OS.get_cmdline_user_args()
+	var dir: String = args[args.find("--shots") + 1] if args.size() > args.find("--shots") + 1 else "/tmp/shots"
+	DirAccess.make_dir_recursive_absolute(dir)
+	var n := 0
+	var snap := func(label: String) -> void:
+		await RenderingServer.frame_post_draw
+		var img := get_viewport().get_texture().get_image()
+		img.save_png("%s/%02d_%s.png" % [dir, n, label])
+		n += 1
+	var wait := func(sec: float) -> void:
+		await get_tree().create_timer(sec, true, false, true).timeout
+	await wait.call(1.0)
+	await snap.call("title")
+	for st in STAGES.size():
+		_clear_match()
+		_set_stage(st)
+		_cursor = {1: st % Characters.ROSTER.size(), 2: (st + 1) % Characters.ROSTER.size()}
+		p2_cpu = true
+		cpu_level = 2
+		phase = "versus"
+		phase_time = 0.0
+		_cues.clear()
+		await wait.call(0.8)
+		await snap.call("s%d_versus" % st)
+		_start_match()
+		p1.cpu = true
+		p1.cpu_level = 2
+		await wait.call(0.4)
+		await snap.call("s%d_intro_a" % st)
+		await wait.call(1.6)
+		await snap.call("s%d_intro_b" % st)
+		await wait.call(1.2)
+		for k in 6:
+			if k == 3:
+				p1.meter = 100.0
+			await snap.call("s%d_fight_%d" % [st, k])
+			await wait.call(1.0)
+		# finish the match: player 1 already has a round, knock player 2 out
+		wins[1] = WINS_NEEDED - 1
+		p2.take_hit(5000, 300.0, 0.5, p1.facing)
+		await wait.call(0.6)
+		await snap.call("s%d_ko" % st)
+		await wait.call(3.4)
+		await snap.call("s%d_after_ko" % st)
+		await wait.call(1.2)
+		await snap.call("s%d_victory_a" % st)
+		await wait.call(3.5)
+		await snap.call("s%d_victory_b" % st)
+	print("SHOTS DONE %d" % n)
 	get_tree().quit()
 
 

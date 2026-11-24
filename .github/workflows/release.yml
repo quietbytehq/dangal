@@ -49,6 +49,24 @@ jobs:
           fi
           grep -q "SMOKE PASSED" smoke.log || { echo "::error::smoke test did not finish"; exit 1; }
 
+      - name: Screenshot tour (for review)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag == ''
+        continue-on-error: true
+        run: |
+          apt-get install -y xvfb libgl1-mesa-dri libgl1 libglx-mesa0 >/dev/null
+          mkdir -p shots
+          timeout 240 xvfb-run -a -s "-screen 0 1280x720x24" \
+            godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 -- --shots "$PWD/shots" 2>&1 | tail -20
+          ls shots | head -50
+
+      - name: Upload screenshots
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag == ''
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots/
+
       - name: Export Linux
         run: |
           mkdir -p build/linux
