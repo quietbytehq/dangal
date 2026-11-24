@@ -40,7 +40,7 @@ To run it from source, open `project.godot` in Godot 4.5 and press **F5**.
 - **Karachi Rooftop:** a night-time rooftop over the city skyline, with fairy lights and a rickshaw-art mural.
 - **Hunza Valley:** a village courtyard under Rakaposhi at golden hour.
 
-Both backgrounds are animated loops: lights flicker, flags wave and clouds drift.
+Both backgrounds are animated loops with extra life on top: kites, crows, a passing plane and twinkling city lights over Karachi; drifting clouds, circling eagles, falling blossom petals and a sparkling river in Hunza.
 
 Each stage has its own music and its own props: crates, clay pots, barrels, apricot baskets, copper pots and firewood. They wobble and slide when you bump them, tumble when hit, and shatter when you smash them with attacks, specials, or your opponent's body.
 
@@ -62,12 +62,14 @@ Each stage has its own music and its own props: crates, clay pots, barrels, apri
 - **Special:** Down, Down-Forward, Forward + Punch, or the Special button. It has a short cooldown.
 - **Kick special:** Down, Down-Forward, Forward + Kick, or Forward + Special.
 - **Ultra:** the blue meter under your health fills as you hit, get hit and block. When it reads ULTRA READY, press Ultra.
-- **Block:** hold away from your opponent; your fighter raises a guard when an attack is coming. Low attacks need a crouching block (back + down). Blocked hits do 10% damage.
+- **Block:** hold away from your opponent, standing or crouching; every attack can be blocked. Your fighter raises a guard when an attack is coming. Blocked hits do 10% damage.
 - **Air attacks:** press Punch or Kick during a jump.
+- **Jump over:** jump towards your opponent to sail over his head and land behind him.
 - The fighters can't walk through each other; they push each other along instead.
+- The full list of controls and moves is in **HOW TO PLAY**, on the title screen and in the pause menu.
 - **Combos:** hits that land while the opponent is still reeling count towards a combo.
 
-Matches are best of three rounds, with 99 seconds per round. Before each match the two fighters call each other out in close-up, and afterwards the winner taunts the beaten loser. Press Punch or Enter to skip either screen.
+Matches are best of three rounds, with 99 seconds per round. Before each match the two fighters call each other out in close-up. The round winner strikes his own victory pose, the announcer calls **YOU WIN** or **YOU LOSE** (or **PLAYER 1 / 2 WINS** in versus), and the winner taunts the beaten loser. Press Punch or Enter to skip either screen.
 
 ## Project layout
 

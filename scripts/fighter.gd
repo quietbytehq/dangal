@@ -462,7 +462,7 @@ func _update_tint() -> void:
 	elif state in ["ultra", "ultra_wait"] and not special_spawned:
 		var pulse := 0.75 + 0.25 * sin(_time * 22.0)
 		var aura := Color(0.55, 0.8, 1.6) if def.get("ultra", "beam") == "beam" else Color(1.6, 1.15, 0.45)
-		_sprite.modulate = Color.WHITE.lerp(aura, pulse)
+		_sprite.modulate = Color.WHITE.lerp(aura, pulse * 0.5)
 	else:
 		_sprite.modulate = Color.WHITE
 

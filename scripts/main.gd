@@ -1036,6 +1036,8 @@ func _draw_victory(font: Font) -> void:
 	_portrait(loser.char_id, "beaten", small,
 			_mirror_for(loser.char_id, "beaten", -1 if champ_left else 1), Color(0.75, 0.8, 0.95))
 	var name_x := -240.0 if champ_left else 240.0
+	# dark band so the title reads over the close-up
+	hud.draw_rect(Rect2(big.position.x, 0, big.size.x, 150), Color(0, 0, 0, 0.55))
 	_neon(font, Vector2(name_x, 70), _result_text(_champ), 64, Color(1, 0.85, 0.2))
 	_outlined(font, Vector2(name_x, 120), "%s WINS THE DANGAL" % _champ.display_name, 26, Color.WHITE)
 	if phase_time > 1.4:
