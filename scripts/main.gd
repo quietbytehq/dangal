@@ -197,6 +197,11 @@ func _shots() -> void:
 	await wait.call(0.2)
 	await snap.call("help_moves")
 	_help_open = false
+	_enter_select()
+	_cursor = {1: 0, 2: 1}
+	p2_cpu = true
+	await wait.call(0.5)
+	await snap.call("select")
 	for st in STAGES.size():
 		_clear_match()
 		_set_stage(st)
@@ -377,6 +382,12 @@ func _select_input(p: int) -> void:
 	elif _pressed("p%d_right" % p):
 		_cursor[p] = (_cursor[p] + 1) % n
 		Sound.sfx("whoosh", -10.0)
+	elif _pressed("p%d_up" % p) or _pressed("p%d_down" % p):
+		var step := -SELECT_COLS if _pressed("p%d_up" % p) else SELECT_COLS
+		var nxt: int = _cursor[p] + step
+		if nxt >= 0 and nxt < n:
+			_cursor[p] = nxt
+			Sound.sfx("whoosh", -10.0)
 	elif _pressed("p%d_punch" % p) or (p == 1 and _pressed("start")):
 		_locked_in[p] = true
 		var id: String = Characters.ROSTER[_cursor[p]]
@@ -920,54 +931,114 @@ func _draw_title(font: Font) -> void:
 	hud.draw_string(font, Vector2(30, 708), "a QuietByte game", HORIZONTAL_ALIGNMENT_LEFT, 460, 14, Color(1, 1, 1, 0.4))
 
 
-func _draw_select(font: Font) -> void:
-	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.05, 0.03, 0.1, 0.72))
-	_neon(font, Vector2(0, 86), "CHOOSE YOUR FIGHTER", 52, Color(1, 0.3, 0.8))
+## Where each fighter's face sits in his call-out close-up (fractions of the image), for square tiles.
+const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38)}
+const SELECT_COLS := 2
+const TILE := 150.0
 
+
+func _tile_rect(i: int) -> Rect2:
 	var n := Characters.ROSTER.size()
-	var card := Vector2(360, 440)
-	var gap := 60.0
-	var x0 := (1280.0 - (n * card.x + (n - 1) * gap)) / 2.0
-	for i in n:
-		var id: String = Characters.ROSTER[i]
-		var def := Characters.get_def(id)
-		var r := Rect2(x0 + i * (card.x + gap), 130, card.x, card.y)
-		hud.draw_rect(r, Color(0.12, 0.08, 0.2, 0.9))
-		# portrait: first idle frame, scaled to fit the card
-		var frames: SpriteFrames = _sprite_cache[id]["frames"]
-		var tex := frames.get_frame_texture("idle", 0)
-		if tex:
-			var ts := tex.get_size()
-			var s: float = min((card.x - 20) / ts.x, (card.y - 90) / ts.y)
-			var size := ts * s
-			hud.draw_texture_rect(tex, Rect2(r.position + Vector2((card.x - size.x) / 2, 10), size), false)
-		hud.draw_string(font, r.position + Vector2(0, card.y - 50), def["name"],
-				HORIZONTAL_ALIGNMENT_CENTER, card.x, 34, Color.WHITE)
-		hud.draw_string(font, r.position + Vector2(0, card.y - 18), def["from"],
-				HORIZONTAL_ALIGNMENT_CENTER, card.x, 20, Color(0.8, 0.8, 0.9))
+	var rows := int(ceil(float(n) / SELECT_COLS))
+	var gap := 14.0
+	var w := SELECT_COLS * TILE + (SELECT_COLS - 1) * gap
+	var h := rows * TILE + (rows - 1) * gap
+	var x0 := 640.0 - w / 2.0
+	var y0 := 400.0 - h / 2.0
+	return Rect2(x0 + (i % SELECT_COLS) * (TILE + gap), y0 + (i / SELECT_COLS) * (TILE + gap), TILE, TILE)
 
+
+## Square crop of a fighter's close-up around his face.
+func _face_tile(id: String, r: Rect2, tint := Color.WHITE) -> void:
+	var tex: Texture2D = _portraits.get(id, {}).get("callout")
+	if tex == null:
+		_portrait(id, "callout", r, false, tint)
+		return
+	var ts := tex.get_size()
+	var side: float = ts.y * 0.78
+	var f: Vector2 = FACE_FOCUS.get(id, Vector2(0.5, 0.4))
+	var c := Vector2(ts.x * f.x, ts.y * f.y)
+	var src := Rect2(c - Vector2(side, side) * 0.5, Vector2(side, side))
+	src.position.x = clamp(src.position.x, 0.0, ts.x - side)
+	src.position.y = clamp(src.position.y, 0.0, ts.y - side)
+	hud.draw_texture_rect_region(tex, r, src, tint)
+
+
+func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
+	var def := Characters.get_def(id)
+	var col := Color(0.3, 0.6, 1.0) if p == 1 else Color(1.0, 0.35, 0.35)
+	var panel := Rect2(x, 120, 390, 560)
+	hud.draw_rect(panel, Color(0.06, 0.03, 0.12, 0.88))
+	hud.draw_rect(panel, Color(col.r, col.g, col.b, 0.8), false, 3.0)
+	# fighter, full body, standing in the panel
+	var frames: SpriteFrames = _sprite_cache[id]["frames"]
+	var tex := frames.get_frame_texture("idle", 0)
+	if tex:
+		var ts := tex.get_size()
+		var sc: float = min(360.0 / ts.x, 230.0 / ts.y)
+		var size := ts * sc
+		var pos := Vector2(x + (390 - size.x) / 2.0, 128)
+		if p == 2:
+			hud.draw_set_transform(Vector2(pos.x + size.x, pos.y), 0.0, Vector2(-1, 1))
+			hud.draw_texture_rect(tex, Rect2(Vector2.ZERO, size), false)
+			hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		else:
+			hud.draw_texture_rect(tex, Rect2(pos, size), false)
+	var tag := ("%dP" % p) + (" CPU" if p == 2 and p2_cpu else "") + ("   READY" if _locked_in[p] else "")
+	hud.draw_string(font, Vector2(x + 14, 148), tag, HORIZONTAL_ALIGNMENT_LEFT, 360, 18, col)
+	var y := 392.0
+	hud.draw_string(font, Vector2(x, y), def["name"], HORIZONTAL_ALIGNMENT_CENTER, 390, 34, Color.WHITE)
+	y += 26
+	hud.draw_string(font, Vector2(x, y), "%s  ·  %s" % [def.get("country", ""), str(def["from"]).to_upper()],
+			HORIZONTAL_ALIGNMENT_CENTER, 390, 16, Color(1, 0.85, 0.4))
+	y += 24
+	hud.draw_string(font, Vector2(x, y), "%s   ·   Age %s   ·   %s" % [def.get("style", ""), def.get("age", "?"),
+			def.get("height", "")], HORIZONTAL_ALIGNMENT_CENTER, 390, 15, Color(0.85, 0.85, 0.95))
+	y += 14
+	var stats: Dictionary = def.get("stats", {})
+	for k in stats:
+		y += 22
+		hud.draw_string(font, Vector2(x + 24, y), str(k), HORIZONTAL_ALIGNMENT_LEFT, 100, 14, Color(0.8, 0.8, 0.9))
+		for b in 5:
+			var on: bool = b < int(stats[k])
+			hud.draw_rect(Rect2(x + 120 + b * 48, y - 12, 42, 12),
+					Color(col.r, col.g, col.b, 0.95) if on else Color(1, 1, 1, 0.12))
+	y += 30
+	hud.draw_string(font, Vector2(x + 24, y), "MOVES", HORIZONTAL_ALIGNMENT_LEFT, 100, 14, Color(0.8, 0.8, 0.9))
+	hud.draw_string(font, Vector2(x + 120, y), "%s · %s · %s" % [def["special_name"], def.get("kick_special_name", ""),
+			def.get("ultra_name", "")], HORIZONTAL_ALIGNMENT_LEFT, 260, 12, Color(0.4, 0.9, 1.0))
+	y += 22
+	hud.draw_multiline_string(font, Vector2(x + 24, y), str(def.get("fact", "")), HORIZONTAL_ALIGNMENT_LEFT,
+			342, 14, 3, Color(1, 1, 1, 0.75))
+
+
+func _draw_select(font: Font) -> void:
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.05, 0.03, 0.1, 0.78))
+	_neon(font, Vector2(0, 76), "CHOOSE YOUR FIGHTER", 50, Color(1, 0.3, 0.8))
+	_draw_facts(font, Characters.ROSTER[_cursor[1]], 20, 1)
+	_draw_facts(font, Characters.ROSTER[_cursor[2]], 870, 2)
+	for i in Characters.ROSTER.size():
+		var id: String = Characters.ROSTER[i]
+		var r := _tile_rect(i)
+		hud.draw_rect(r.grow(3), Color(0, 0, 0, 0.8))
+		_face_tile(id, r)
+		hud.draw_rect(Rect2(r.position.x, r.end.y - 24, r.size.x, 24), Color(0, 0, 0, 0.65))
+		hud.draw_string(font, Vector2(r.position.x, r.end.y - 6), Characters.get_def(id)["name"],
+				HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 15, Color.WHITE)
 		for p in [1, 2]:
 			if _cursor[p] != i:
 				continue
 			var col := Color(0.3, 0.6, 1.0) if p == 1 else Color(1.0, 0.3, 0.3)
-			var grow := 6.0 if p == 1 else 12.0
-			var width := 6.0 if _locked_in[p] else 3.0
-			hud.draw_rect(r.grow(grow), col, false, width)
-			var tag := ("%dP" % p) + (" CPU" if p == 2 and p2_cpu else "") + (" READY" if _locked_in[p] else "")
-			var tx := r.position.x + (6.0 if p == 1 else card.x - 170.0)
-			hud.draw_string(font, Vector2(tx, r.position.y - 14), tag,
-					HORIZONTAL_ALIGNMENT_LEFT if p == 1 else HORIZONTAL_ALIGNMENT_RIGHT, 164, 22, col)
-
+			var pulse := 0.6 + 0.4 * sin(phase_time * 8.0)
+			var g := 4.0 if p == 1 else 9.0
+			hud.draw_rect(r.grow(g), Color(col.r, col.g, col.b, 1.0 if _locked_in[p] else pulse), false,
+					5.0 if _locked_in[p] else 3.0)
+			hud.draw_string(font, Vector2(r.position.x + (4 if p == 1 else r.size.x - 34), r.position.y + 18),
+					"%dP" % p, HORIZONTAL_ALIGNMENT_LEFT, 30, 15, col)
 	if _locked_in[1] and _locked_in[2]:
-		_neon(font, Vector2(0, 640), "%s  VS  %s" % [
-				Characters.get_def(Characters.ROSTER[_cursor[1]])["name"],
-				Characters.get_def(Characters.ROSTER[_cursor[2]])["name"]], 48, Color(1, 0.85, 0.3))
-	else:
-		_outlined(font, Vector2(0, 640), "←/→ choose    Punch / Enter: select    Kick: back    F2: toggle CPU",
-				20, Color(1, 1, 1, 0.85))
-	_outlined(font, Vector2(0, 690),
-			"P1: A/D move  W jump  S crouch  J punch  K kick  L special  I ultra   |   P2: arrows + numpad 1-4   |   Full list: HOW TO PLAY",
-			15, Color(1, 1, 1, 0.6))
+		_neon(font, Vector2(0, 640), "VS", 56, Color(1, 0.85, 0.3))
+	_outlined(font, Vector2(0, 706), "Arrows choose    Punch / Enter: select    Kick: back    F2: toggle CPU",
+			16, Color(1, 1, 1, 0.7))
 
 
 func _draw_stage_select(font: Font) -> void:
