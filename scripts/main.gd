@@ -974,16 +974,19 @@ func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
 	var frames: SpriteFrames = _sprite_cache[id]["frames"]
 	var tex := frames.get_frame_texture("idle", 0)
 	if tex:
-		var ts := tex.get_size()
-		var sc: float = min(360.0 / ts.x, 230.0 / ts.y)
-		var size := ts * sc
-		var pos := Vector2(x + (390 - size.x) / 2.0, 128)
+		# crop the frame to the body: the sprite cells have lots of empty space
+		var anchor: Vector2 = _sprite_cache[id]["anchor"]
+		var bh: float = _sprite_cache[id]["body_height"]
+		var src := Rect2(anchor.x - bh * 0.6, anchor.y - bh * 1.08, bh * 1.2, bh * 1.12)
+		var sc: float = 235.0 / src.size.y
+		var size := src.size * sc
+		var pos := Vector2(x + (390 - size.x) / 2.0, 140)
 		if p == 2:
 			hud.draw_set_transform(Vector2(pos.x + size.x, pos.y), 0.0, Vector2(-1, 1))
-			hud.draw_texture_rect(tex, Rect2(Vector2.ZERO, size), false)
+			hud.draw_texture_rect_region(tex, Rect2(Vector2.ZERO, size), src)
 			hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		else:
-			hud.draw_texture_rect(tex, Rect2(pos, size), false)
+			hud.draw_texture_rect_region(tex, Rect2(pos, size), src)
 	var tag := ("%dP" % p) + (" CPU" if p == 2 and p2_cpu else "") + ("   READY" if _locked_in[p] else "")
 	hud.draw_string(font, Vector2(x + 14, 148), tag, HORIZONTAL_ALIGNMENT_LEFT, 360, 18, col)
 	var y := 392.0
@@ -1005,9 +1008,10 @@ func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
 					Color(col.r, col.g, col.b, 0.95) if on else Color(1, 1, 1, 0.12))
 	y += 30
 	hud.draw_string(font, Vector2(x + 24, y), "MOVES", HORIZONTAL_ALIGNMENT_LEFT, 100, 14, Color(0.8, 0.8, 0.9))
-	hud.draw_string(font, Vector2(x + 120, y), "%s · %s · %s" % [def["special_name"], def.get("kick_special_name", ""),
-			def.get("ultra_name", "")], HORIZONTAL_ALIGNMENT_LEFT, 260, 12, Color(0.4, 0.9, 1.0))
-	y += 22
+	hud.draw_multiline_string(font, Vector2(x + 120, y), "%s  ·  %s  ·  %s" % [def["special_name"],
+			def.get("kick_special_name", ""), def.get("ultra_name", "")], HORIZONTAL_ALIGNMENT_LEFT, 250, 13, 2,
+			Color(0.4, 0.9, 1.0))
+	y += 40
 	hud.draw_multiline_string(font, Vector2(x + 24, y), str(def.get("fact", "")), HORIZONTAL_ALIGNMENT_LEFT,
 			342, 14, 3, Color(1, 1, 1, 0.75))
 
