@@ -5,6 +5,8 @@ extends Node2D
 ## animated stage backgrounds, CPU difficulty.
 
 const GAME_TITLE := "DANGAL"
+## Overall fight speed: 1.0 is the clips' natural pace; higher is snappier arcade action.
+const GAME_SPEED := 1.3
 const FLOOR_Y := 640.0
 const ROUND_TIME := 99.0
 const WINS_NEEDED := 2
@@ -17,8 +19,31 @@ const STAGES := [
 		"props": [["firewood", 120.0], ["basket", 250.0], ["copper_pot", 1170.0], ["basket", 1050.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
-const TITLE_ITEMS := ["ARCADE  (vs CPU)", "VERSUS  (2 players)", "CPU", "QUIT"]
-const PAUSE_ITEMS := ["RESUME", "CHARACTER SELECT", "TITLE SCREEN"]
+const TITLE_ITEMS := ["ARCADE  (vs CPU)", "VERSUS  (2 players)", "HOW TO PLAY", "CPU", "QUIT"]
+const PAUSE_ITEMS := ["RESUME", "HOW TO PLAY", "CHARACTER SELECT", "TITLE SCREEN"]
+
+## How to Play: [action, player 1 keys, player 2 keys, joypad]
+const HELP_CONTROLS := [
+	["Move / jump / crouch", "W A S D", "Arrow keys", "D-pad or left stick"],
+	["Punch", "J", "Numpad 1", "X  /  Square"],
+	["Kick", "K", "Numpad 2", "A  /  Cross"],
+	["Special", "L", "Numpad 3", "B  /  Circle"],
+	["Ultra (meter full)", "I", "Numpad 4", "Y  /  Triangle"],
+	["Pause / menu", "Enter", "Enter", "Start"],
+]
+## [move, how to do it]. "Forward" means towards your opponent.
+const HELP_MOVES := [
+	["Jab / Palm strike", "Punch"],
+	["Roundhouse / Push kick", "Kick"],
+	["Crouch punch", "Hold Down + Punch"],
+	["Low sweep", "Hold Down + Kick"],
+	["Jump attack", "Jump (Up), then Punch or Kick in the air"],
+	["Jump over", "Jump towards your opponent to land behind him"],
+	["Block", "Hold Back (away from your opponent). Hold Back + Down to block crouching"],
+	["Special", "Special   or   Down, Down-Forward, Forward + Punch"],
+	["Kick special", "Forward + Special   or   Down, Down-Forward, Forward + Kick"],
+	["Ultra", "Fill the blue meter, then press Ultra"],
+]
 
 var p1: Fighter
 var p2: Fighter
@@ -34,10 +59,13 @@ var hud: Control
 var world: Node2D
 var bg: Sprite2D
 var bg_video: VideoStreamPlayer
+var ambience: Ambience
 var _portraits := {}
 var _ultra_user: Fighter
 var _ultra_t := -1.0
 var _champ: Fighter
+var _help_open := false
+var _help_page := 0
 var p2_cpu := true
 var cpu_level := 1
 var stage_idx := 0
@@ -59,6 +87,7 @@ var _cpu_pick_at := -1.0
 
 func _ready() -> void:
 	randomize()
+	Engine.time_scale = GAME_SPEED
 	process_mode = Node.PROCESS_MODE_ALWAYS     # menus keep working while paused
 	world = Node2D.new()
 	world.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -77,6 +106,9 @@ func _ready() -> void:
 	bg_video.volume_db = -80.0
 	bg_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	world.add_child(bg_video)
+	# code-drawn life on top of the background: kites, birds, petals, lights
+	ambience = Ambience.new()
+	world.add_child(ambience)
 	for st in STAGES:
 		var path: String = st["image"]
 		_stage_tex[path] = load(path) if ResourceLoader.exists(path) else null
@@ -196,6 +228,7 @@ func _set_stage(i: int) -> void:
 	bg.texture = tex
 	if tex:
 		bg.scale = Vector2(1280.0, 720.0) / tex.get_size()
+	ambience.setup(i)
 	var vpath: String = STAGES[i].get("video", "")
 	if vpath != "" and ResourceLoader.exists(vpath):
 		bg_video.stream = load(vpath)
@@ -223,6 +256,9 @@ func _enter_title() -> void:
 
 
 func _process_title() -> void:
+	if _help_open:
+		_process_help()
+		return
 	if _pressed("p1_up") or _pressed("p2_up"):
 		_menu_idx = (_menu_idx - 1 + TITLE_ITEMS.size()) % TITLE_ITEMS.size()
 		Sound.sfx("whoosh", -12.0)
@@ -242,6 +278,8 @@ func _process_title() -> void:
 				p2_cpu = false
 				Sound.sfx("punch")
 				_enter_select()
+			"HOW TO PLAY":
+				_open_help()
 			"CPU":
 				cpu_level = (cpu_level + 1) % LEVELS.size()
 			"QUIT":
@@ -465,13 +503,23 @@ func _process(delta: float) -> void:
 			if _ultra_t >= 0.0:
 				_process_ultra_cutin(real)
 			else:
-				clock = max(clock - delta, 0.0)
+				clock = max(clock - real, 0.0)
 				if clock <= 0.0:
 					_end_round(_leader(), "TIME")
 		"ko":
+			var match_over: bool = wins[1] >= WINS_NEEDED or wins[2] >= WINS_NEEDED
+			if _round_winner and _cue("celebrate", 1.0):
+				_round_winner.celebrate()
 			if _round_winner and _cue("win_line", 1.6):
 				_round_winner.say("win2" if randf() < 0.5 else "win1")
-			if phase_time > 3.6:
+			if match_over and _round_winner and _cue("result", 2.6):
+				banner = _result_text(_round_winner)
+				winner_text = ""
+				if p2_cpu:
+					Sound.announce("you_win" if _round_winner.player == 1 else "you_lose")
+				else:
+					Sound.announce("p%d_wins" % _round_winner.player)
+			if phase_time > (5.2 if match_over else 3.6):
 				if wins[1] >= WINS_NEEDED or wins[2] >= WINS_NEEDED:
 					phase = "victory"
 					phase_time = 0.0
@@ -479,7 +527,6 @@ func _process(delta: float) -> void:
 					_champ = p1 if wins[1] > wins[2] else p2
 					banner = ""
 					winner_text = ""
-					Sound.announce("p%d_wins" % _champ.player)
 					Sound.music_volume(-18.0)
 				else:
 					round_num += 1
@@ -527,8 +574,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _set_paused(on: bool) -> void:
 	paused = on
+	_help_open = false
 	get_tree().paused = on
-	Engine.time_scale = 1.0
+	Engine.time_scale = GAME_SPEED
 	_pause_idx = 0
 	if on:
 		Sound.music_volume(-20.0)
@@ -537,6 +585,9 @@ func _set_paused(on: bool) -> void:
 
 
 func _process_pause() -> void:
+	if _help_open:
+		_process_help()
+		return
 	if _pressed("p1_up"):
 		_pause_idx = (_pause_idx - 1 + PAUSE_ITEMS.size()) % PAUSE_ITEMS.size()
 	elif _pressed("p1_down"):
@@ -547,10 +598,62 @@ func _process_pause() -> void:
 		match PAUSE_ITEMS[_pause_idx]:
 			"RESUME":
 				_set_paused(false)
+			"HOW TO PLAY":
+				_open_help()
 			"CHARACTER SELECT":
 				_enter_select()
 			"TITLE SCREEN":
 				_enter_title()
+
+
+# ---------------------------------------------------------------- how to play
+
+func _open_help() -> void:
+	_help_open = true
+	_help_page = 0
+	Sound.sfx("punch", -6.0)
+
+
+func _process_help() -> void:
+	if _pressed("p1_left") or _pressed("p1_right") or _pressed("p2_left") or _pressed("p2_right"):
+		_help_page = 1 - _help_page
+		Sound.sfx("whoosh", -10.0)
+	elif _pressed("p1_kick") or _pressed("p1_punch") or _pressed("start"):
+		_help_open = false
+		Sound.sfx("block", -6.0)
+
+
+func _draw_help(font: Font) -> void:
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.02, 0.01, 0.05, 0.93))
+	_neon(font, Vector2(0, 80), "HOW TO PLAY", 56, Color(1, 0.3, 0.8))
+	var tabs := ["CONTROLS", "MOVES"]
+	for i in 2:
+		var col := Color(1, 0.85, 0.3) if i == _help_page else Color(1, 1, 1, 0.35)
+		hud.draw_string(font, Vector2(340 + i * 360, 130), tabs[i], HORIZONTAL_ALIGNMENT_CENTER, 240, 26, col)
+	hud.draw_line(Vector2(340 + _help_page * 360, 140), Vector2(580 + _help_page * 360, 140), Color(1, 0.85, 0.3), 3.0)
+	if _help_page == 0:
+		var cols := [90.0, 470.0, 700.0, 930.0]
+		var heads := ["", "PLAYER 1", "PLAYER 2", "JOYPAD"]
+		for c in 4:
+			hud.draw_string(font, Vector2(cols[c], 200), heads[c], HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+					Color(0.3, 0.9, 1.0))
+		for r in HELP_CONTROLS.size():
+			var y := 250.0 + r * 56.0
+			hud.draw_rect(Rect2(70, y - 32, 1140, 46), Color(1, 1, 1, 0.04 if r % 2 == 0 else 0.0))
+			for c in 4:
+				hud.draw_string(font, Vector2(cols[c], y), HELP_CONTROLS[r][c], HORIZONTAL_ALIGNMENT_LEFT,
+						-1, 24 if c == 0 else 22, Color.WHITE if c == 0 else Color(1, 0.9, 0.6))
+	else:
+		for r in HELP_MOVES.size():
+			var y := 195.0 + r * 46.0
+			hud.draw_rect(Rect2(70, y - 30, 1140, 40), Color(1, 1, 1, 0.04 if r % 2 == 0 else 0.0))
+			hud.draw_string(font, Vector2(90, y), HELP_MOVES[r][0], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
+			hud.draw_string(font, Vector2(420, y), HELP_MOVES[r][1], HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+					Color(1, 0.9, 0.6))
+		var names := "Rustam:  Storm Fist  ·  Hurricane Kick  ·  Lightning Storm          Baba Sher:  Earthquake  ·  Avalanche  ·  Mountain Breaker"
+		hud.draw_string(font, Vector2(0, 668), names, HORIZONTAL_ALIGNMENT_CENTER, 1280, 17, Color(0.3, 0.9, 1.0))
+	hud.draw_string(font, Vector2(0, 706), "Left / Right: switch page      Punch or Kick: back",
+			HORIZONTAL_ALIGNMENT_CENTER, 1280, 16, Color(1, 1, 1, 0.55))
 
 
 # ---------------------------------------------------------------- hits, KO
@@ -593,6 +696,13 @@ func _end_round(winner: Fighter, why: String) -> void:
 	else:
 		Sound.announce("time")
 	Sound.music_volume(-15.0)
+
+
+## "YOU WIN!" / "YOU LOSE!" against the CPU, "PLAYER 1 WINS!" in versus.
+func _result_text(winner: Fighter) -> String:
+	if p2_cpu:
+		return "YOU WIN!" if winner.player == 1 else "YOU LOSE!"
+	return "PLAYER %d WINS!" % winner.player
 
 
 func _on_hit(target: Fighter, blocked: bool) -> void:
@@ -642,10 +752,10 @@ func _process_ultra_cutin(real: float) -> void:
 func _hitstop(seconds: float) -> void:
 	_hitstop_token += 1
 	var token := _hitstop_token
-	Engine.time_scale = 0.05
+	Engine.time_scale = 0.05 * GAME_SPEED
 	await get_tree().create_timer(seconds, true, false, true).timeout
 	if token == _hitstop_token and not paused:
-		Engine.time_scale = 1.0
+		Engine.time_scale = GAME_SPEED
 
 
 # ---------------------------------------------------------------- HUD
@@ -655,6 +765,8 @@ func _draw_hud() -> void:
 	match phase:
 		"title":
 			_draw_title(font)
+			if _help_open:
+				_draw_help(font)
 			return
 		"versus":
 			_draw_versus(font)
@@ -700,6 +812,8 @@ func _draw_hud() -> void:
 
 	if paused:
 		_draw_pause(font)
+		if _help_open:
+			_draw_help(font)
 
 
 func _draw_title(font: Font) -> void:
@@ -770,7 +884,7 @@ func _draw_select(font: Font) -> void:
 		_outlined(font, Vector2(0, 640), "←/→ choose    Punch / Enter: select    Kick: back    F2: toggle CPU",
 				20, Color(1, 1, 1, 0.85))
 	_outlined(font, Vector2(0, 690),
-			"P1: A/D move  W jump  S crouch  J punch  K kick  L special   |   P2: arrows + numpad 1/2/3   |   joypads work too",
+			"P1: A/D move  W jump  S crouch  J punch  K kick  L special  I ultra   |   P2: arrows + numpad 1-4   |   Full list: HOW TO PLAY",
 			15, Color(1, 1, 1, 0.6))
 
 
@@ -891,7 +1005,8 @@ func _draw_victory(font: Font) -> void:
 	_portrait(loser.char_id, "beaten", small,
 			_mirror_for(loser.char_id, "beaten", -1 if champ_left else 1), Color(0.75, 0.8, 0.95))
 	var name_x := -240.0 if champ_left else 240.0
-	_neon(font, Vector2(name_x, 90), "%s WINS!" % _champ.display_name, 64, Color(1, 0.85, 0.2))
+	_neon(font, Vector2(name_x, 70), _result_text(_champ), 64, Color(1, 0.85, 0.2))
+	_outlined(font, Vector2(name_x, 120), "%s WINS THE DANGAL" % _champ.display_name, 26, Color.WHITE)
 	if phase_time > 1.4:
 		var sx := 40.0 if champ_left else 520.0
 		_speech(font, Vector2(sx, 640), _champ.def["tease_text"], 720, Color(1, 0.8, 0.2))

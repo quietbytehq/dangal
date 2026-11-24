@@ -18,7 +18,10 @@ const HIT_TIME := 0.45
 const BLOCKSTUN := 0.22
 const CROUCH_POSE := 0.22     # where in the crouch-kick clip the crouch pose sits
 const GUARD_POSE := 0.45      # where in the block clips the guard is fully up
+const VICTORY_HOLD := {"rustam": 0.5, "babasher": 0.5}   # where each victory clip hits its pose
 const METER_MAX := 100.0
+const WALK_BOOST := 1.2       # extra walking speed on top of the global game speed
+const JUMP_DRIFT := 2.1       # sideways jump speed, in walk speeds: enough to jump over the opponent
 
 const GROUND_ATTACKS := ["jab", "roundhouse", "crouch_punch", "crouch_kick", "kick_special"]
 const AIR_ATTACKS := ["jump_punch", "jump_kick"]
@@ -90,7 +93,7 @@ func setup(p: int, id: String, data: Dictionary, tint: Color, pitch := 1.0) -> v
 	display_name = def["name"]
 	max_health = def["health"]
 	health = max_health
-	walk_speed = def["walk_speed"]
+	walk_speed = def["walk_speed"] * WALK_BOOST
 	push_width = def.get("push_width", 0.3)
 	attacks = def["attacks"]
 	special_kind = def["special"]
@@ -209,6 +212,11 @@ func _physics_process(delta: float) -> void:
 			_special()
 		"ultra":
 			_ultra()
+		"victory":
+			# play into the pose, then hold it
+			if has_anim("victory") and _sprite.animation == "victory" \
+					and _progress() >= float(VICTORY_HOLD.get(char_id, 0.5)):
+				_sprite.pause()
 
 	# knockback slide
 	if slide != 0.0:
@@ -257,7 +265,7 @@ func _grounded(delta: float) -> void:
 		# The jump clip already contains the vertical motion, so the node stays
 		# on the floor and only drifts sideways. The hurtbox follows the arc.
 		var dir := int(_held("right")) - int(_held("left"))
-		vel = Vector2(dir * walk_speed * 1.1, 0.0)
+		vel = Vector2(dir * walk_speed * JUMP_DRIFT, 0.0)
 		state = "jump"
 		_play("jump", _length("jump") / JUMP_TIME)
 	elif _held(_back()) and _under_threat():
@@ -487,15 +495,30 @@ func _ultra() -> void:
 		get_parent().add_child(fx)
 
 
+## Round won: strike this fighter's own victory pose.
+func celebrate() -> void:
+	if state == "ko":
+		return
+	locked = true
+	state = "victory"
+	vel = Vector2.ZERO
+	slide = 0.0
+	if opponent:
+		facing = 1 if opponent.position.x >= position.x else -1
+		_visual.scale.x = facing
+	_play("victory" if has_anim("victory") else "idle")
+
+
 # ---------------------------------------------------------------- getting hit
 
 ## Returns true if the hit connected, false if it was blocked or ignored.
-## `low` hits (sweeps, shockwave) can only be blocked crouching: hold back + down.
+## Every attack can be blocked by holding back, standing or crouching.
 func take_hit(damage: int, push: float, hitstun: float, from_dir: int, low := false) -> bool:
 	if state == "ko":
 		return false
 	var can_guard: bool = state in ["idle", "walk", "crouch", "block", "crouch_block"] and not locked
-	var blocking: bool = can_guard and _held(_back()) and (not low or _held("down"))
+	# any attack can be blocked by holding back, standing or crouching
+	var blocking: bool = can_guard and _held(_back())
 	if blocking:
 		health = max(health - int(damage * 0.1), 1)
 		slide = push * 0.6 * from_dir
@@ -575,6 +598,9 @@ func _bump_props() -> void:
 ## Each pushes half the overlap; against a wall the other one takes all of it.
 func _separate_from_opponent() -> void:
 	if opponent == null or state == "ko" or opponent.state == "ko":
+		return
+	# a jumping fighter sails over the other one's head; push apart only once he lands
+	if _jump_lift() > H * 0.3 or opponent._jump_lift() > opponent.H * 0.3:
 		return
 	var min_gap: float = H * push_width + opponent.H * opponent.push_width
 	var gap := position.x - opponent.position.x

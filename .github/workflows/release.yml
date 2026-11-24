@@ -53,7 +53,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag == ''
         continue-on-error: true
         run: |
-          apt-get install -y xvfb libgl1-mesa-dri libgl1 libglx-mesa0 >/dev/null
+          apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 libglx-mesa0 libegl1 libxcursor1 libxinerama1 libxrandr2 libxi6 libxkbcommon0 libxext6 libxrender1 libx11-6 libxfixes3 >/dev/null
           mkdir -p shots
           timeout 240 xvfb-run -a -s "-screen 0 1280x720x24" \
             godot --rendering-driver opengl3 --audio-driver Dummy --resolution 1280x720 -- --shots "$PWD/shots" 2>&1 | tail -20
