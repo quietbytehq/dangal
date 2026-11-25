@@ -115,9 +115,9 @@
     },
     "knockdown": {
       "file": "tiago_knockdown.png",
-      "frames": 32,
+      "frames": 22,
       "columns": 8,
-      "rows": 4,
+      "rows": 3,
       "loop": false
     },
     "victory": {
