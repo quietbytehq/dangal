@@ -1,0 +1,131 @@
+{
+  "frame_width": 640,
+  "frame_height": 525,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 309,
+    "y": 506
+  },
+  "body_height": 328,
+  "animations": {
+    "idle": {
+      "file": "meilin_idle.png",
+      "frames": 48,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "walk": {
+      "file": "meilin_walk.png",
+      "frames": 60,
+      "columns": 8,
+      "rows": 8,
+      "loop": true
+    },
+    "jab": {
+      "file": "meilin_jab.png",
+      "frames": 27,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "meilin_roundhouse.png",
+      "frames": 32,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "meilin_crouch_punch.png",
+      "frames": 37,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "meilin_crouch_kick.png",
+      "frames": 29,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "jump": {
+      "file": "meilin_jump.png",
+      "frames": 55,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "meilin_jump_punch.png",
+      "frames": 45,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "meilin_jump_kick.png",
+      "frames": 38,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "special": {
+      "file": "meilin_special.png",
+      "frames": 27,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "meilin_kick_special.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "ultra": {
+      "file": "meilin_ultra.png",
+      "frames": 60,
+      "columns": 8,
+      "rows": 8,
+      "loop": false
+    },
+    "block": {
+      "file": "meilin_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "meilin_crouch_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "hit": {
+      "file": "meilin_hit.png",
+      "frames": 25,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "meilin_knockdown.png",
+      "frames": 35,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "victory": {
+      "file": "meilin_victory.png",
+      "frames": 43,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    }
+  }
+}

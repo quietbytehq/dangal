@@ -3,6 +3,7 @@ extends Node2D
 ## A special-move projectile.
 ##  - "fireball": Rustam's chi blast. Flies at chest height.
 ##  - "shockwave": Baba Sher's ground pound. Rolls along the floor and must be jumped over.
+##  - "phoenix": Mei Lin's Phoenix Palm. Flies at chest height like the fireball, burning orange.
 
 var kind := "fireball"
 var owner_fighter: Fighter
@@ -15,20 +16,22 @@ var _next_burst := 0.0
 
 func _ready() -> void:
 	z_index = 4
-	if kind == "fireball":
+	if kind != "shockwave":
 		_orb = Vfx.spawn(self, "chi_orb", Vector2.ZERO, 0.42, direction < 0, 4)
+		if _orb and kind == "phoenix":
+			_orb.modulate = Color(1.8, 0.75, 0.3)
 
 
 func _speed() -> float:
-	return 620.0 if kind == "fireball" else 470.0
+	return 470.0 if kind == "shockwave" else (660.0 if kind == "phoenix" else 620.0)
 
 
 func _damage() -> int:
-	return 90 if kind == "fireball" else 115
+	return 115 if kind == "shockwave" else 90
 
 
 func _hit_shape() -> Rect2:
-	if kind == "fireball":
+	if kind != "shockwave":
 		return Rect2(position - Vector2(30, 30), Vector2(60, 60))
 	# low and wide: hits anything standing on the floor, misses jumpers
 	return Rect2(position.x - 45, position.y - 70, 90, 70)
@@ -64,22 +67,22 @@ func _physics_process(delta: float) -> void:
 	# specials blast stage props out of the way and keep going
 	for prop in get_tree().get_nodes_in_group("props"):
 		if not prop.broken and _hit_shape().intersects(prop.get_rect()):
-			prop.hit(Vector2(direction * 650.0, -420.0), 120 if kind == "fireball" else 90)
+			prop.hit(Vector2(direction * 650.0, -420.0), 90 if kind == "shockwave" else 120)
 
 	var target := owner_fighter.opponent
 	if target and _hit_shape().intersects(target.get_hurtbox()):
 		if target.take_hit(_damage(), 220.0, 0.45, direction, kind == "shockwave"):
-			Sound.sfx("fireball_hit" if kind == "fireball" else "kick", 0.0, 0.03)
+			Sound.sfx("kick" if kind == "shockwave" else "fireball_hit", 0.0, 0.03)
 			owner_fighter.gain_meter(8.0)
-		Vfx.spawn(get_parent(), "fire_burst" if kind == "fireball" else "rock_burst",
-				position if kind == "fireball" else position, 0.8 if kind == "fireball" else 0.75)
+		Vfx.spawn(get_parent(), "rock_burst" if kind == "shockwave" else "fire_burst",
+				position, 0.75 if kind == "shockwave" else 0.8)
 		queue_free()
 	elif position.x < -100 or position.x > 1380:
 		queue_free()
 
 
 func _draw() -> void:
-	if kind == "fireball":
+	if kind != "shockwave":
 		_draw_fireball()
 	else:
 		_draw_shockwave()

@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher", "tiago"]
+const ROSTER := ["rustam", "babasher", "tiago", "meilin"]
 
 const DATA := {
 	"rustam": {
@@ -161,6 +161,58 @@ const DATA := {
 			"special": {"damage": 105, "active": Vector2(0.18, 0.80), "time": 0.95,
 				"move": 760.0, "box": Rect2(0.05, -0.75, 0.70, 0.55), "hitstun": 0.55,
 				"push": 330.0, "sfx": "kick", "vfx": "fire_burst"},
+		},
+	},
+	"meilin": {
+		"name": "MEI LIN",
+		"from": "Chengdu",
+		"country": "CHINA",
+		"style": "Wushu master",
+		"age": 26,
+		"height": "1.68 m",
+		"stats": {"POWER": 3, "SPEED": 5, "RANGE": 4, "DEFENSE": 3},
+		"fact": "Trained since childhood in a Sichuan mountain temple. Her palms carry the fire of the phoenix.",
+		"sprites": "res://assets/meilin",
+		"json": "meilin_sprites.json",
+		"voice": "meilin",
+		"health": 950,
+		"walk_speed": 265.0,
+		"push_width": 0.25,
+		# Phoenix Palm: a burning phoenix leaves her palm and flies across the stage
+		"special": "phoenix",
+		"special_name": "PHOENIX PALM",
+		"special_time": 1.0,
+		"special_release": 0.72,
+		"kick_special_name": "LOTUS WHIRLWIND",
+		"ultra": "dragon",
+		"ultra_name": "DRAGON DANCE",
+		"ultra_time": 3.8,
+		"ultra_release": 0.66,
+		"ultra_damage": 335,
+		"callout_text": "You there! Show me the strength of your spirit.",
+		"tease_text": "Your stance was weak. Train harder, and come back.",
+		"groan_text": "Hmph... you fought well. This time.",
+		"attacks": {
+			# straight palm strike
+			"jab": {"damage": 55, "active": Vector2(0.22, 0.55), "time": 0.40,
+				"box": Rect2(0.10, -0.82, 0.60, 0.18), "hitstun": 0.35, "push": 130.0, "sfx": "punch"},
+			# high side kick
+			"roundhouse": {"damage": 105, "active": Vector2(0.22, 0.70), "time": 0.78,
+				"box": Rect2(0.10, -0.95, 0.66, 0.34), "hitstun": 0.45, "push": 250.0, "sfx": "kick"},
+			# low lunging palm
+			"crouch_punch": {"damage": 48, "active": Vector2(0.43, 0.78), "time": 0.48,
+				"box": Rect2(0.10, -0.50, 0.65, 0.20), "hitstun": 0.30, "push": 115.0, "sfx": "punch"},
+			# drops low and snaps a kick at the ankles
+			"crouch_kick": {"damage": 80, "active": Vector2(0.55, 0.85), "time": 0.70, "low": true,
+				"box": Rect2(0.05, -0.32, 0.62, 0.28), "hitstun": 0.40, "push": 180.0, "sfx": "kick"},
+			"jump_punch": {"damage": 70, "active": Vector2(0.40, 0.62), "time": 0.95, "air": true,
+				"box": Rect2(0.05, -0.80, 0.55, 0.34), "hitstun": 0.40, "push": 160.0, "sfx": "punch"},
+			"jump_kick": {"damage": 85, "active": Vector2(0.20, 0.55), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.65, 0.66, 0.32), "hitstun": 0.45, "push": 200.0, "sfx": "kick"},
+			# Lotus Whirlwind: spins up in a ring of golden fire and lotus petals
+			"kick_special": {"damage": 55, "active": Vector2(0.30, 0.85), "time": 1.0, "hits": 3,
+				"move": 300.0, "box": Rect2(-0.40, -1.00, 1.05, 0.70), "hitstun": 0.40,
+				"push": 160.0, "sfx": "kick", "vfx": "fire_burst"},
 		},
 	},
 }

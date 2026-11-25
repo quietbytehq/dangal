@@ -3,6 +3,7 @@ extends Node2D
 ## The payoff of an ultra.
 ##  - "beam":  Rustam's LIGHTNING STORM, a screen-wide lightning beam at chest height.
 ##  - "quake": Baba Sher's MOUNTAIN BREAKER, rock eruptions sweeping the whole floor.
+##  - "dragon": Mei Lin's DRAGON DANCE, the beam's golden twin: a dragon of light across the screen.
 ##  - "rush":  Tiago's RIO SUBMISSION, a green-energy charge across the floor that slams into the opponent.
 ## Both can be blocked for chip damage (the quake only crouching); jumping dodges the quake.
 
@@ -28,7 +29,7 @@ func _ready() -> void:
 	z_index = 6
 	var f := owner_fighter
 	_dir = f.facing
-	if kind == "beam":
+	if kind in ["beam", "dragon"]:
 		_x0 = f.position.x + _dir * f.H * 0.45
 		_y = f.position.y - f.H * 0.62
 		Sound.sfx("beam_blast", 2.0, 0.0)
@@ -38,6 +39,8 @@ func _ready() -> void:
 		if _beam:
 			var w := float(Vfx.info("lightning_beam")["frame_width"])
 			_beam.scale = Vector2(length / w * _dir, 1.25)
+			if kind == "dragon":
+				_beam.modulate = Color(1.8, 1.3, 0.35)
 		Vfx.spawn(self, "fire_burst", Vector2(_x0, _y), 0.9)
 	elif kind == "rush":
 		Sound.sfx("spin_whoosh", 2.0, 0.0)
@@ -61,7 +64,7 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 	var o := f.opponent
-	if kind == "beam":
+	if kind in ["beam", "dragon"]:
 		var r := _beam_rect()
 		if not _hit and t > 0.06 and o and r.intersects(o.get_hurtbox()):
 			_hit = true
@@ -125,12 +128,14 @@ func _rush(delta: float, f: Fighter, o: Fighter) -> void:
 
 func _draw() -> void:
 	# simple glow fallback, also adds punch under the video effects
-	if kind == "beam":
+	if kind in ["beam", "dragon"]:
 		var r := _beam_rect()
 		var a := clampf((BEAM_TIME - t) / 0.3, 0.0, 1.0)
 		var core := Rect2(r.position.x, _y - r.size.y * 0.18, r.size.x, r.size.y * 0.36)
-		draw_rect(r, Color(0.4, 0.7, 1.0, 0.18 * a))
-		draw_rect(core, Color(0.85, 0.95, 1.0, 0.55 * a))
+		var glow := Color(1.0, 0.75, 0.25) if kind == "dragon" else Color(0.4, 0.7, 1.0)
+		var hot := Color(1.0, 0.95, 0.7) if kind == "dragon" else Color(0.85, 0.95, 1.0)
+		draw_rect(r, Color(glow, 0.18 * a))
+		draw_rect(core, Color(hot, 0.55 * a))
 	elif kind == "rush":
 		# green-gold streak trailing behind the charge
 		if _hit or t >= RUSH_TIME:
