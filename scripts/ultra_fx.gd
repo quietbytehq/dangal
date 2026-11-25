@@ -109,9 +109,10 @@ func _rush(delta: float, f: Fighter, o: Fighter) -> void:
 			var contact := (reach.get_center() + o.get_hurtbox().get_center()) * 0.5
 			if o.take_hit(damage, 560.0, 0.9, _dir):
 				Vfx.spawn(get_parent(), "fire_burst", contact, 1.25)
-				var orb := Vfx.spawn(get_parent(), "chi_orb", contact, 1.0, _dir < 0, 6)
-				if orb:
-					orb.modulate = Color(0.6, 1.5, 0.5)   # green Brazil energy
+				# second, green burst (one-shot effect; looping ones like chi_orb never free themselves)
+				var green := Vfx.spawn(get_parent(), "fire_burst", contact + Vector2(_dir * 30.0, -20.0), 1.0, _dir < 0, 6)
+				if green:
+					green.modulate = Color(0.5, 1.6, 0.45)
 				Sound.sfx("ground_pound", 3.0, 0.0)
 			f.quake.emit(22.0)
 		for prop in get_tree().get_nodes_in_group("props"):
