@@ -12,11 +12,17 @@ const ROUND_TIME := 99.0
 const WINS_NEEDED := 2
 const STAGES := [
 	{"name": "KARACHI ROOFTOP", "image": "res://assets/stage/karachi_rooftop.png", "music": "stage_karachi",
-		"video": "res://assets/stage/karachi_loop.ogv",
+		"video": "res://assets/stage/karachi_crowd_loop.ogv",
 		"props": [["crate", 105.0], ["matka", 235.0], ["drum", 1165.0], ["crate", 1045.0]]},
 	{"name": "HUNZA VALLEY", "image": "res://assets/stage/hunza_valley.png", "music": "stage_hunza",
-		"video": "res://assets/stage/hunza_loop.ogv",
+		"video": "res://assets/stage/hunza_crowd_loop.ogv",
 		"props": [["firewood", 120.0], ["basket", 250.0], ["copper_pot", 1170.0], ["basket", 1050.0]]},
+	{"name": "AMAZON JUNGLE", "image": "res://assets/stage/amazon_jungle.png", "music": "stage_amazon",
+		"video": "res://assets/stage/amazon_loop.ogv",
+		"props": [["crate", 110.0], ["basket", 240.0], ["firewood", 1160.0], ["crate", 1040.0]]},
+	{"name": "CHINA TEMPLE", "image": "res://assets/stage/china_temple.png", "music": "stage_china",
+		"video": "res://assets/stage/china_loop.ogv",
+		"props": [["copper_pot", 115.0], ["crate", 245.0], ["matka", 1165.0], ["basket", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE  (vs CPU)", "VERSUS  (2 players)", "HOW TO PLAY", "CPU", "QUIT"]

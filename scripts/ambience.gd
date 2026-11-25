@@ -36,6 +36,26 @@ func setup(stage_idx: int) -> void:
 			_twinkles.append({"p": Vector2(x, 140.0 + sin(i * 0.9) * 8.0), "phase": randf() * TAU,
 					"speed": randf_range(2.0, 5.0), "big": true,
 					"col": [Color(1, 0.3, 0.3), Color(0.3, 1, 0.5), Color(0.4, 0.6, 1), Color(1, 0.85, 0.3)][i % 4]})
+	elif stage == 2:
+		# Amazon: fireflies drifting through the jungle, macaws flying past, mist motes
+		for i in 40:
+			_items.append({"kind": "firefly", "x": randf_range(0, 1280), "y": randf_range(150, 600),
+					"phase": randf() * TAU, "speed": randf_range(0.4, 1.2)})
+		for i in 2:
+			_items.append(_new_bird(false))
+		for i in 25:
+			_items.append({"kind": "mote", "x": randf_range(0, 1280), "y": randf_range(200, 640),
+					"phase": randf() * TAU, "speed": randf_range(3, 8)})
+	elif stage == 3:
+		# China: plum blossom petals falling from the trees at both edges, lanterns glowing
+		for i in 30:
+			_items.append(_new_petal(true))
+		for i in 3:
+			_items.append({"kind": "cloud", "x": randf_range(-100, 1300), "y": randf_range(20, 140),
+					"speed": randf_range(5, 10), "w": randf_range(90, 160), "a": randf_range(0.08, 0.16)})
+		for p in [Vector2(14, 95), Vector2(52, 98), Vector2(82, 97), Vector2(140, 122), Vector2(165, 124), Vector2(195, 130), Vector2(222, 140), Vector2(248, 152)]:
+			_twinkles.append({"p": p, "phase": randf() * TAU, "speed": randf_range(1.5, 3.0), "big": true,
+					"col": Color(1, 0.45, 0.25)})
 	else:
 		for i in 5:
 			_items.append({"kind": "cloud", "x": randf_range(-100, 1300), "y": randf_range(20, 170),
@@ -98,6 +118,10 @@ func _process(delta: float) -> void:
 				it["y"] += it["vy"] * delta
 				if it["y"] > 700 or it["x"] < -20 or it["x"] > 1300:
 					it.merge(_new_petal(false), true)
+			"firefly":
+				it["phase"] += delta * it["speed"]
+				it["x"] += cos(it["phase"] * 1.3) * 18.0 * delta
+				it["y"] += sin(it["phase"]) * 12.0 * delta
 			"mote":
 				it["y"] -= it["speed"] * delta
 				if it["y"] < 180:
@@ -115,7 +139,7 @@ func _draw() -> void:
 		if tw.get("big", false):
 			draw_circle(tw["p"], 7.0, Color(c.r, c.g, c.b, 0.18 * a))
 			draw_circle(tw["p"], 3.0, Color(c.r, c.g, c.b, a))
-		elif stage == 1:
+		elif stage != 0:
 			draw_circle(tw["p"], 1.6, Color(c.r, c.g, c.b, a * a * 0.9))
 		else:
 			draw_rect(Rect2(tw["p"], Vector2(2, 2)), Color(c.r, c.g, c.b, a * 0.6))
@@ -171,6 +195,11 @@ func _draw() -> void:
 				var a: float = 0.25 + 0.25 * sin(t * 1.5 + it["phase"])
 				draw_circle(Vector2(it["x"] + sin(t * 0.8 + it["phase"]) * 12.0, it["y"]), 1.6,
 						Color(1, 0.9, 0.6, a))
+			"firefly":
+				var glow: float = 0.5 + 0.5 * sin(t * 3.0 + it["phase"] * 2.0)
+				var fp: Vector2 = Vector2(it["x"], it["y"])
+				draw_circle(fp, 6.0, Color(0.75, 1.0, 0.3, 0.15 * glow))
+				draw_circle(fp, 2.2, Color(0.9, 1.0, 0.5, 0.9 * glow))
 
 
 func _draw_bird(p: Vector2, s: float, flap: float, col: Color) -> void:
