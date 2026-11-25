@@ -13,7 +13,7 @@ The character art and animation come from AI-generated video, cut frame by frame
 Get the latest build from **[Releases](https://github.com/quietbytehq/dangal/releases)**:
 
 | Platform | File | How |
-|---|---|---|
+|---|---|---|---|
 | Linux (any distro) | `Dangal-<version>-x86_64.AppImage` | `chmod +x` it, then run it |
 | Ubuntu / Debian | `dangal_<version>_amd64.deb` | `sudo apt install ./dangal_<version>_amd64.deb`, then find **Dangal** in your apps |
 | Windows 10/11 | `Dangal-<version>-Setup.exe` | Run the installer; it adds Start Menu and desktop shortcuts and an uninstaller |
@@ -22,18 +22,18 @@ To run it from source, open `project.godot` in Godot 4.5 and press **F5**.
 
 ## Fighters
 
-| | **Rustam**, Karachi | **Baba Sher**, Hunza |
+| | **Rustam**, Karachi | **Baba Sher**, Hunza | **Tiago**, Rio de Janeiro |
 |---|---|---|
-| Style | Fast street fighter | Slow, heavy mountain wrestler |
-| Health | 1000 | 1150 |
-| Punch | Quick jab | Heavy open-palm strike |
-| Kick | Roundhouse to the head | Front push kick (big knockback) |
-| Down + Punch | Low punch | Low palm strike |
-| Down + Kick | Low sweep | Low leg sweep |
-| Jump + Punch / Kick | Diving punch / flying kick | Diving hammer fist / flying knee |
-| Special | **Storm Fist!** Chi fireball at chest height | **Earthquake!** Ground-pound shockwave that rolls along the floor. Jump over it, or crouch-block it. |
-| Kick special | **Hurricane Kick!** Spinning multi-hit kick that travels forward | **Avalanche!** Axe kick that shakes the ground and erupts rocks |
-| Ultra | **Lightning Storm!** A screen-wide lightning beam | **Mountain Breaker!** Rock eruptions sweep the whole floor. Jump it, or crouch-block it. |
+| Style | Fast street fighter | Slow, heavy mountain wrestler | Quick Brazilian jiu-jitsu grappler |
+| Health | 1000 | 1150 | 980 |
+| Punch | Quick jab | Heavy open-palm strike | Straight jab |
+| Kick | Roundhouse to the head | Front push kick (big knockback) | Front push kick |
+| Down + Punch | Low punch | Low palm strike | Low single-leg shot |
+| Down + Kick | Low sweep | Low leg sweep | Scissor sweep |
+| Jump + Punch / Kick | Diving punch / flying kick | Diving hammer fist / flying knee | Jumping punch / flying knee |
+| Special | **Storm Fist!** Chi fireball at chest height | **Earthquake!** Ground-pound shockwave that rolls along the floor. Jump over it, or crouch-block it. | **Jaguar Shot!** A charging double-leg tackle wrapped in green energy |
+| Kick special | **Hurricane Kick!** Spinning multi-hit kick that travels forward | **Avalanche!** Axe kick that shakes the ground and erupts rocks | **Flying Armbar!** A spinning leap that hits twice |
+| Ultra | **Lightning Storm!** A screen-wide lightning beam | **Mountain Breaker!** Rock eruptions sweep the whole floor. Jump it, or crouch-block it. | **Rio Submission!** A green-energy rush across the floor that slams into the opponent |
 
 ## Stages
 
