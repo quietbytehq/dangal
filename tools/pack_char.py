@@ -13,7 +13,7 @@ from PIL import Image
 ROOT, PREFIX, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 MOVES = ["idle", "walk", "jab", "roundhouse", "crouch_punch", "crouch_kick", "jump",
          "jump_punch", "jump_kick", "special", "kick_special", "ultra", "block",
-         "crouch_block", "hit", "knockdown"]
+         "crouch_block", "hit", "knockdown", "victory"]
 # effects in these clips (energy, lightning) may reach the frame edge: they don't size the crop box
 NO_BOX = {"special", "ultra"}
 # guard clips: keep the whole clip, the game holds the guard frame

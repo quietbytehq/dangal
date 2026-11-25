@@ -3,10 +3,13 @@ extends Node2D
 ## The payoff of an ultra.
 ##  - "beam":  Rustam's LIGHTNING STORM, a screen-wide lightning beam at chest height.
 ##  - "quake": Baba Sher's MOUNTAIN BREAKER, rock eruptions sweeping the whole floor.
+##  - "rush":  Tiago's RIO SUBMISSION, a green-energy charge across the floor that slams into the opponent.
 ## Both can be blocked for chip damage (the quake only crouching); jumping dodges the quake.
 
 const BEAM_TIME := 1.25
 const QUAKE_SPEED := 1150.0
+const RUSH_TIME := 0.75
+const RUSH_SPEED := 980.0
 
 var owner_fighter: Fighter
 var kind := "beam"
@@ -36,6 +39,8 @@ func _ready() -> void:
 			var w := float(Vfx.info("lightning_beam")["frame_width"])
 			_beam.scale = Vector2(length / w * _dir, 1.25)
 		Vfx.spawn(self, "fire_burst", Vector2(_x0, _y), 0.9)
+	elif kind == "rush":
+		Sound.sfx("spin_whoosh", 2.0, 0.0)
 	else:
 		_wave_x = f.position.x + _dir * f.H * 0.4
 		Sound.sfx("ground_pound", 3.0, 0.0)
@@ -70,6 +75,8 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		if t >= BEAM_TIME:
 			queue_free()
+	elif kind == "rush":
+		_rush(delta, f, o)
 	else:
 		_wave_x += _dir * QUAKE_SPEED * delta
 		_next_rock -= delta
@@ -91,6 +98,30 @@ func _physics_process(delta: float) -> void:
 			queue_free()
 
 
+## Tiago charges forward until he reaches the opponent (or the charge runs out), then the slam.
+func _rush(delta: float, f: Fighter, o: Fighter) -> void:
+	if not _hit and t < RUSH_TIME:
+		f.position.x = clamp(f.position.x + _dir * RUSH_SPEED * delta, f.bounds.x, f.bounds.y)
+		var reach := Rect2(f.position.x + (0.0 if _dir > 0 else -f.H * 0.8), f.position.y - f.H * 0.95,
+				f.H * 0.8, f.H * 0.95)
+		if o and reach.intersects(o.get_hurtbox()):
+			_hit = true
+			var contact := (reach.get_center() + o.get_hurtbox().get_center()) * 0.5
+			if o.take_hit(damage, 560.0, 0.9, _dir):
+				Vfx.spawn(get_parent(), "fire_burst", contact, 1.25)
+				var orb := Vfx.spawn(get_parent(), "chi_orb", contact, 1.0, _dir < 0, 6)
+				if orb:
+					orb.modulate = Color(0.6, 1.5, 0.5)   # green Brazil energy
+				Sound.sfx("ground_pound", 3.0, 0.0)
+			f.quake.emit(22.0)
+		for prop in get_tree().get_nodes_in_group("props"):
+			if not prop.broken and reach.intersects(prop.get_rect()):
+				prop.hit(Vector2(_dir * 800.0, -600.0), 999)
+	queue_redraw()
+	if t >= RUSH_TIME + 0.4:
+		queue_free()
+
+
 func _draw() -> void:
 	# simple glow fallback, also adds punch under the video effects
 	if kind == "beam":
@@ -99,5 +130,13 @@ func _draw() -> void:
 		var core := Rect2(r.position.x, _y - r.size.y * 0.18, r.size.x, r.size.y * 0.36)
 		draw_rect(r, Color(0.4, 0.7, 1.0, 0.18 * a))
 		draw_rect(core, Color(0.85, 0.95, 1.0, 0.55 * a))
+	elif kind == "rush":
+		# green-gold streak trailing behind the charge
+		if _hit or t >= RUSH_TIME:
+			return
+		var f := owner_fighter
+		var left: float = f.position.x - f.H * 1.2 if _dir > 0 else f.position.x
+		draw_rect(Rect2(left, f.position.y - f.H * 0.72, f.H * 1.2, f.H * 0.5), Color(0.35, 1.0, 0.35, 0.22))
+		draw_rect(Rect2(left, f.position.y - f.H * 0.55, f.H * 1.2, f.H * 0.16), Color(1.0, 0.95, 0.4, 0.35))
 	else:
 		draw_circle(Vector2(_wave_x, owner_fighter.floor_y - 30.0), 60.0, Color(1.0, 0.8, 0.3, 0.25))

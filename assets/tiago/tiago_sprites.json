@@ -1,0 +1,131 @@
+{
+  "frame_width": 640,
+  "frame_height": 524,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 314,
+    "y": 506
+  },
+  "body_height": 326,
+  "animations": {
+    "idle": {
+      "file": "tiago_idle.png",
+      "frames": 46,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "walk": {
+      "file": "tiago_walk.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": true
+    },
+    "jab": {
+      "file": "tiago_jab.png",
+      "frames": 33,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "tiago_roundhouse.png",
+      "frames": 31,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "tiago_crouch_punch.png",
+      "frames": 32,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "tiago_crouch_kick.png",
+      "frames": 33,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "jump": {
+      "file": "tiago_jump.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "tiago_jump_punch.png",
+      "frames": 34,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "tiago_jump_kick.png",
+      "frames": 38,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "special": {
+      "file": "tiago_special.png",
+      "frames": 37,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "tiago_kick_special.png",
+      "frames": 28,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "ultra": {
+      "file": "tiago_ultra.png",
+      "frames": 52,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "block": {
+      "file": "tiago_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "tiago_crouch_block.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "hit": {
+      "file": "tiago_hit.png",
+      "frames": 27,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "tiago_knockdown.png",
+      "frames": 32,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "victory": {
+      "file": "tiago_victory.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    }
+  }
+}

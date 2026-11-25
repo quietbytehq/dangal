@@ -18,7 +18,7 @@ const HIT_TIME := 0.45
 const BLOCKSTUN := 0.22
 const CROUCH_POSE := 0.22     # where in the crouch-kick clip the crouch pose sits
 const GUARD_POSE := 0.45      # where in the block clips the guard is fully up
-const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48}   # where each victory clip hits its pose
+const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48, "tiago": 0.45}   # where each victory clip hits its pose
 const METER_MAX := 100.0
 const EXTRA_JUMP := 0.4       # extra jump height on top of the clip's own, in body heights
 const WALK_BOOST := 1.2       # extra walking speed on top of the global game speed
@@ -210,7 +210,12 @@ func _physics_process(delta: float) -> void:
 			_attacking()
 			_move_during_attack(delta)
 		"special":
-			_special()
+			if special_kind == "dash":
+				# Jaguar Shot: the special is a charging attack, not a projectile
+				_attacking()
+				_move_during_attack(delta)
+			else:
+				_special()
 		"ultra":
 			_ultra()
 		"victory":
@@ -441,6 +446,12 @@ func _start_special() -> void:
 	state = "special"
 	special_spawned = false
 	special_cd = SPECIAL_COOLDOWN
+	hit_landed = false
+	_hits_done = 0
+	_impact_done = false
+	_props_hit.clear()
+	if special_kind == "dash":
+		Sound.sfx("spin_whoosh", -2.0, 0.05)
 	_play("special", _length("special") / special_time)
 	say("special_shout")
 
@@ -471,7 +482,8 @@ func _update_tint() -> void:
 		_sprite.modulate = Color(2.2, 2.2, 2.2)
 	elif state in ["ultra", "ultra_wait"] and not special_spawned:
 		var pulse := 0.75 + 0.25 * sin(_time * 22.0)
-		var aura := Color(0.55, 0.8, 1.6) if def.get("ultra", "beam") == "beam" else Color(1.6, 1.15, 0.45)
+		var auras := {"beam": Color(0.55, 0.8, 1.6), "quake": Color(1.6, 1.15, 0.45), "rush": Color(0.75, 1.6, 0.6)}
+		var aura: Color = auras.get(str(def.get("ultra", "beam")), Color(1.6, 1.15, 0.45))
 		_sprite.modulate = Color.WHITE.lerp(aura, pulse * 0.5)
 	else:
 		_sprite.modulate = Color.WHITE

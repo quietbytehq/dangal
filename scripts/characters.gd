@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher"]
+const ROSTER := ["rustam", "babasher", "tiago"]
 
 const DATA := {
 	"rustam": {
@@ -105,6 +105,62 @@ const DATA := {
 			"kick_special": {"damage": 140, "active": Vector2(0.46, 0.72), "time": 1.05,
 				"move": 170.0, "box": Rect2(0.10, -0.60, 0.72, 0.60), "hitstun": 0.55,
 				"push": 260.0, "sfx": "kick", "quake": 12.0, "vfx": "rock_burst"},
+		},
+	},
+	"tiago": {
+		"name": "TIAGO",
+		"from": "Rio de Janeiro",
+		"country": "BRAZIL",
+		"style": "Jiu-jitsu grappler",
+		"age": 31,
+		"height": "1.78 m",
+		"stats": {"POWER": 3, "SPEED": 5, "RANGE": 3, "DEFENSE": 4},
+		"fact": "Black belt from a Rio beach gym. Takes every fight to the ground, and nobody gets back up.",
+		"sprites": "res://assets/tiago",
+		"json": "tiago_sprites.json",
+		"voice": "tiago",
+		"health": 980,
+		"walk_speed": 260.0,
+		"push_width": 0.27,
+		# Jaguar Shot: no projectile, he shoots in for a double-leg takedown wrapped in green energy
+		"special": "dash",
+		"special_name": "JAGUAR SHOT",
+		"special_time": 0.95,
+		"special_release": 0.3,
+		"kick_special_name": "FLYING ARMBAR",
+		"ultra": "rush",
+		"ultra_name": "RIO SUBMISSION",
+		"ultra_time": 3.8,
+		"ultra_release": 0.17,
+		"ultra_damage": 340,
+		"callout_text": "Hey, you! Come here, I'm taking you to the ground!",
+		"tease_text": "Too easy! Next time, tap out early, my friend!",
+		"groan_text": "Ugh... okay, okay... you got me this time.",
+		"attacks": {
+			"jab": {"damage": 55, "active": Vector2(0.30, 0.62), "time": 0.42,
+				"box": Rect2(0.10, -0.82, 0.60, 0.18), "hitstun": 0.35, "push": 130.0, "sfx": "punch"},
+			# front push kick
+			"roundhouse": {"damage": 100, "active": Vector2(0.25, 0.70), "time": 0.75,
+				"box": Rect2(0.10, -0.80, 0.68, 0.32), "hitstun": 0.45, "push": 300.0, "sfx": "kick"},
+			# low single-leg shot
+			"crouch_punch": {"damage": 50, "active": Vector2(0.36, 0.76), "time": 0.48,
+				"box": Rect2(0.10, -0.45, 0.70, 0.22), "hitstun": 0.32, "push": 120.0, "sfx": "punch"},
+			# scissor sweep along the floor
+			"crouch_kick": {"damage": 85, "active": Vector2(0.45, 0.84), "time": 0.70, "low": true,
+				"box": Rect2(0.05, -0.28, 0.85, 0.26), "hitstun": 0.42, "push": 190.0, "sfx": "kick"},
+			"jump_punch": {"damage": 70, "active": Vector2(0.42, 0.64), "time": 0.95, "air": true,
+				"box": Rect2(0.05, -0.80, 0.55, 0.34), "hitstun": 0.40, "push": 160.0, "sfx": "punch"},
+			# flying knee
+			"jump_kick": {"damage": 90, "active": Vector2(0.40, 0.66), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.70, 0.70, 0.36), "hitstun": 0.45, "push": 210.0, "sfx": "kick"},
+			# flying armbar: leaps forward, legs whip round twice
+			"kick_special": {"damage": 60, "active": Vector2(0.35, 0.82), "time": 1.0, "hits": 2,
+				"move": 380.0, "box": Rect2(-0.10, -1.00, 0.85, 0.60), "hitstun": 0.45,
+				"push": 190.0, "sfx": "kick", "vfx": "fire_burst"},
+			# Jaguar Shot (the special): a fast low-to-mid tackle across the screen
+			"special": {"damage": 105, "active": Vector2(0.18, 0.80), "time": 0.95,
+				"move": 760.0, "box": Rect2(0.05, -0.75, 0.70, 0.55), "hitstun": 0.55,
+				"push": 330.0, "sfx": "kick", "vfx": "fire_burst"},
 		},
 	},
 }
