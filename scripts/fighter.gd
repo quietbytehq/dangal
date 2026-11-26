@@ -107,6 +107,8 @@ func setup(p: int, id: String, data: Dictionary, tint: Color, pitch := 1.0) -> v
 	H = data["body_height"]
 	_counts = data["counts"]
 	_fps = data["fps"]
+	# moved in _physics_process: let Godot smooth it between physics ticks on fast screens
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	_visual = Node2D.new()
 	add_child(_visual)
 	_sprite = AnimatedSprite2D.new()
@@ -121,6 +123,7 @@ func setup(p: int, id: String, data: Dictionary, tint: Color, pitch := 1.0) -> v
 
 func reset_for_round(x: float) -> void:
 	position = Vector2(x, floor_y)
+	reset_physics_interpolation()
 	health = max_health
 	vel = Vector2.ZERO
 	slide = 0.0

@@ -62,6 +62,7 @@ var banner := ""
 var winner_text := ""
 var shake := 0.0
 var hud: Control
+var _fps_label: Label
 var world: Node2D
 var bg: Sprite2D
 var bg_video: VideoStreamPlayer
@@ -99,6 +100,8 @@ func _ready() -> void:
 	Engine.time_scale = GAME_SPEED
 	process_mode = Node.PROCESS_MODE_ALWAYS     # menus keep working while paused
 	world = Node2D.new()
+	# the screen shake moves this node every frame, so it must not be smoothed itself
+	world.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	world.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(world)
 
@@ -139,6 +142,14 @@ func _ready() -> void:
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud.draw.connect(_draw_hud)
 	layer.add_child(hud)
+	# F3 shows the frame rate, top right
+	_fps_label = Label.new()
+	_fps_label.position = Vector2(1180, 4)
+	_fps_label.add_theme_font_size_override("font_size", 16)
+	_fps_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_fps_label.add_theme_constant_override("outline_size", 4)
+	_fps_label.visible = false
+	layer.add_child(_fps_label)
 
 	if "--smoke" in OS.get_cmdline_user_args():
 		_smoke_test()
@@ -237,6 +248,7 @@ func _shots() -> void:
 			p2.locked = true
 			p1.locked = true
 			p1.position.x = p2.position.x - 260.0
+			p1.reset_physics_interpolation()
 			var before := "p1 x=%d facing=%d | p2 x=%d" % [p1.position.x, p1.facing, p2.position.x]
 			p1.state = "jump"
 			p1.vel = Vector2(p1.facing * p1.walk_speed * Fighter.JUMP_DRIFT, 0.0)
@@ -620,13 +632,17 @@ func _process(delta: float) -> void:
 
 	shake = max(shake - real * 30.0, 0.0)
 	world.position = Vector2(randf_range(-shake, shake), randf_range(-shake, shake))
+	if _fps_label.visible:
+		_fps_label.text = "%d FPS" % Engine.get_frames_per_second()
 	hud.queue_redraw()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
-	if event.physical_keycode == KEY_F2:
+	if event.physical_keycode == KEY_F3:
+		_fps_label.visible = not _fps_label.visible
+	elif event.physical_keycode == KEY_F2:
 		p2_cpu = not p2_cpu
 		if p2:
 			p2.cpu = p2_cpu

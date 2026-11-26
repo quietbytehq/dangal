@@ -39,6 +39,11 @@ func _stream(path: String) -> AudioStream:
 ## A sound effect with a little random pitch so repeats don't sound identical.
 func sfx(name: String, volume_db := 0.0, pitch_jitter := 0.08) -> void:
 	var s := _stream("sfx/" + name)
+	# a second take ("punch_2") is picked half the time so repeated hits vary
+	if randf() < 0.5:
+		var alt := _stream("sfx/" + name + "_2")
+		if alt != null:
+			s = alt
 	if s == null:
 		return
 	var p := _sfx_players[_next]

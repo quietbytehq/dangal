@@ -15,6 +15,7 @@ var _next_burst := 0.0
 
 
 func _ready() -> void:
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	z_index = 4
 	if kind != "shockwave":
 		_orb = Vfx.spawn(self, "chi_orb", Vector2.ZERO, 0.42, direction < 0, 4)

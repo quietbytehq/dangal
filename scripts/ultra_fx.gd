@@ -26,6 +26,7 @@ var _next_rock := 0.0
 
 
 func _ready() -> void:
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	z_index = 6
 	var f := owner_fighter
 	_dir = f.facing

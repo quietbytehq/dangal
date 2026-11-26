@@ -10,6 +10,10 @@ var life := 2.5
 var _age := 0.0
 
 
+func _ready() -> void:
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
+
+
 func _physics_process(delta: float) -> void:
 	_age += delta
 	vel.y += GRAVITY * delta

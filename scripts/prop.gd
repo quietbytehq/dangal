@@ -70,6 +70,10 @@ func hit(force: Vector2, damage: int, quiet := false) -> void:
 		Sound.sfx(KINDS[kind]["sound"], -8.0 if hp >= 0 else -4.0, 0.15)
 
 
+func _ready() -> void:
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
+
+
 func _physics_process(delta: float) -> void:
 	if broken:
 		return
