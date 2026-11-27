@@ -241,9 +241,9 @@ const DATA := {
 		"ultra_time": 3.8,
 		"ultra_release": 0.2,
 		"ultra_damage": 350,
-		"callout_text": "Bismillah. Come, brother. Let us see what Allah has written today.",
-		"tease_text": "Alhamdulillah. You fought well, brother. Train hard, and come back.",
-		"groan_text": "Alhamdulillah, in every state. Allah decides the outcome, and I accept it with patience.",
+		"callout_text": "Bismillah. Brother, come. Today we test our strength with honor.",
+		"tease_text": "Alhamdulillah. You fought well, brother. Train harder and come back.",
+		"groan_text": "Alhamdulillah. You are strong. Today was not my day.",
 		"attacks": {
 			# heavy straight right
 			"jab": {"damage": 65, "active": Vector2(0.22, 0.50), "time": 0.50,
