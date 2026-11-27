@@ -72,6 +72,13 @@ var bg_video: VideoStreamPlayer
 var ambience: Ambience
 var title_show: TitleShow
 var _icon_tex: Texture2D
+## Title screen: one action shot per fighter (assets/title/<id>.jpg) and the logo
+var _slides: Array[Texture2D] = []
+var _slide_names: Array[String] = []
+var _logo_tex: Texture2D
+## Speech bubbles over fighters during a match: [{"f": Fighter, "text": String, "until": float}]
+var _bubbles: Array = []
+var _match_time := 0.0
 var _portraits := {}
 var _ultra_user: Fighter
 var _ultra_t := -1.0
@@ -130,6 +137,16 @@ func _ready() -> void:
 		_stage_tex[path] = load(path) if ResourceLoader.exists(path) else null
 	_set_stage(0)
 
+	_logo_tex = load("res://assets/title/logo.png") if ResourceLoader.exists("res://assets/title/logo.png") else null
+	# newest fighter first, so a new character greets the player
+	var ids: Array = Characters.ROSTER.duplicate()
+	ids.reverse()
+	for id in ids:
+		var sp := "res://assets/title/%s.jpg" % id
+		if ResourceLoader.exists(sp):
+			_slides.append(load(sp))
+			var d := Characters.get_def(id)
+			_slide_names.append("%s  ·  %s" % [d["name"], d.get("country", d.get("from", ""))])
 	for id in Characters.ROSTER:
 		var def := Characters.get_def(id)
 		_sprite_cache[id] = SpriteLibrary.load_character(def["sprites"], def["json"])
@@ -317,11 +334,12 @@ func _enter_title() -> void:
 	phase_time = 0.0
 	_menu_idx = 0
 	_set_stage(randi() % STAGES.size())
-	# attract mode: the two fighters trade blows behind the menu
-	title_show = TitleShow.new()
-	world.add_child(title_show)
-	title_show.setup(_sprite_cache[Characters.ROSTER[0]], _sprite_cache[Characters.ROSTER[1]])
-	title_show.impact.connect(func(amount: float): shake = max(shake, amount))
+	# attract mode: a slideshow of the fighters' action shots (drawn in _draw_title)
+	if _slides.is_empty():
+		title_show = TitleShow.new()
+		world.add_child(title_show)
+		title_show.setup(_sprite_cache[Characters.ROSTER[0]], _sprite_cache[Characters.ROSTER[1]])
+		title_show.impact.connect(func(amount: float): shake = max(shake, amount))
 	if ResourceLoader.exists("res://assets/audio/music/title.ogg"):
 		Sound.play_music("title")
 	else:
@@ -380,6 +398,7 @@ func _clear_match() -> void:
 			n.queue_free()
 	banner = ""
 	winner_text = ""
+	_bubbles.clear()
 	_cues.clear()
 
 
@@ -479,10 +498,7 @@ func _process_versus() -> void:
 	if _cue("slam", 0.45):
 		Sound.sfx("ground_pound", -2.0, 0.0)
 		shake = 10.0
-	if _cue("call1", 2.0):
-		Sound.voice(Characters.get_def(id1)["voice"], 1, "callout")
-	if _cue("call2", 5.0):
-		Sound.voice(Characters.get_def(id2)["voice"], 2, "callout", 1.0, 0.9 if id1 == id2 else 1.0)
+	# the call-outs are shown as speech bubbles on the versus screen, not spoken
 	var skip := phase_time > 0.6 and (_pressed("start") or _pressed("p1_punch"))
 	if phase_time > 8.2 or skip:
 		Sound.music_volume(-9.0)
@@ -559,6 +575,7 @@ func _process(delta: float) -> void:
 		hud.queue_redraw()
 		return
 	phase_time += real
+	_match_time += real
 	match phase:
 		"title":
 			_process_title()
@@ -573,13 +590,12 @@ func _process(delta: float) -> void:
 				# Jameel takes off his papakha before the first round
 				p1.play_intro(2.7)
 				p2.play_intro(2.7)
-			if round_num == 1 and _cue("taunt", 0.1):
-				p2.say("intro")
-			if round_num == 1 and _cue("bismillah", 1.9):
-				# said once, at the start of the fight
+			if round_num == 1 and _cue("bismillah", 0.6):
+				# shown once, at the start of the fight, as a speech bubble
 				for f in [p1, p2]:
-					if f.char_id == "jameel":
-						f.say("bismillah")
+					var line: String = f.def.get("fight_start_text", "")
+					if line != "":
+						_bubble(f, line, 2.2)
 			if _cue("round", 1.3 if round_num == 1 else 0.2):
 				var final := banner == "FINAL ROUND"
 				Sound.announce("final_round" if final else ("round1" if round_num == 1 else "round2"))
@@ -602,8 +618,6 @@ func _process(delta: float) -> void:
 			var match_over: bool = wins[1] >= WINS_NEEDED or wins[2] >= WINS_NEEDED
 			if _round_winner and _cue("celebrate", 1.0):
 				_round_winner.celebrate()
-			if _round_winner and _cue("win_line", 1.6):
-				_round_winner.say("win2" if randf() < 0.5 else "win1")
 			if match_over and _round_winner and _cue("result", 2.6):
 				banner = _result_text(_round_winner)
 				winner_text = ""
@@ -624,10 +638,6 @@ func _process(delta: float) -> void:
 					round_num += 1
 					_start_round()
 		"victory":
-			if _cue("tease", 1.4):
-				_champ.say("tease")
-			if _cue("groan", 4.2):
-				_champ.opponent.say("groan")
 			if phase_time > 1.5:
 				if _pressed("start") or _pressed("p1_punch"):
 					wins = {1: 0, 2: 0}
@@ -898,6 +908,7 @@ func _draw_hud() -> void:
 			_neon(font, Vector2(x, 190), "%d HITS" % int(_combo[p][0]), 46,
 					Color(1.0, 0.25, 0.8, a), 300, HORIZONTAL_ALIGNMENT_LEFT if p == 1 else HORIZONTAL_ALIGNMENT_RIGHT)
 
+	_draw_bubbles(font)
 	if banner != "":
 		_outlined(font, Vector2(0, 330), banner, 84, Color(1, 0.8, 0.2))
 	if winner_text != "":
@@ -912,8 +923,34 @@ func _draw_hud() -> void:
 			_draw_help(font)
 
 
+const SLIDE_TIME := 4.0
+const SLIDE_FADE := 1.0
+
+
+func _draw_slide(i: int, age: float, alpha: float) -> void:
+	var tex := _slides[i % _slides.size()]
+	# slow push-in while the slide is on screen
+	var z := 1.0 + 0.07 * clamp(age / (SLIDE_TIME + SLIDE_FADE), 0.0, 1.0)
+	var sz := Vector2(1280, 720) * z
+	hud.draw_texture_rect(tex, Rect2(Vector2(640, 360) - sz * 0.5, sz), false, Color(1, 1, 1, alpha))
+
+
 func _draw_title(font: Font) -> void:
-	# darken top and bottom, keep the fight on the right readable
+	var t := phase_time
+	if not _slides.is_empty():
+		hud.draw_rect(Rect2(0, 0, 1280, 720), Color.BLACK)
+		var k := int(t / SLIDE_TIME)
+		var age := fmod(t, SLIDE_TIME)
+		if k > 0 and age < SLIDE_FADE:
+			# dissolve from the previous shot into the new one
+			_draw_slide(k - 1, age + SLIDE_TIME, 1.0)
+			_draw_slide(k, age, age / SLIDE_FADE)
+		else:
+			_draw_slide(k, age, 1.0)
+		var name_a: float = clamp((age - 0.4) / 0.3, 0.0, 1.0) * clamp((SLIDE_TIME - age) / 0.3, 0.0, 1.0)
+		_outlined(font, Vector2(400, 690), _slide_names[k % _slide_names.size()], 26,
+				Color(1, 0.9, 0.55, name_a))
+	# darken top and bottom
 	for i in 12:
 		var a := 0.06 * (12 - i)
 		hud.draw_rect(Rect2(0, i * 12, 1280, 12), Color(0.02, 0.0, 0.05, a))
@@ -925,29 +962,26 @@ func _draw_title(font: Font) -> void:
 	hud.draw_line(Vector2(612, 0), Vector2(482, 720), Color(0.3, 0.9, 1.0, 0.5), 2.0)
 
 	# logo slams in, then pulses
-	var t := phase_time
 	var slam: float = clamp(t / 0.35, 0.0, 1.0)
 	var sc: float = lerp(2.6, 1.0, 1.0 - pow(1.0 - slam, 3.0)) + 0.025 * sin(t * 6.0) * float(slam >= 1.0)
-	var logo_at := Vector2(335, 150)
-	if _icon_tex:
-		var isz := 112.0 * sc
-		hud.draw_texture_rect(_icon_tex, Rect2(Vector2(84, 132) - Vector2(isz, isz) * 0.5, Vector2(isz, isz)),
+	if _logo_tex:
+		var lsz := _logo_tex.get_size()
+		var w := 560.0 * sc
+		var h := w * lsz.y / lsz.x
+		hud.draw_texture_rect(_logo_tex, Rect2(Vector2(300, 140) - Vector2(w, h) * 0.5, Vector2(w, h)),
 				false, Color(1, 1, 1, slam))
-	hud.draw_set_transform(logo_at, -0.06, Vector2(sc, sc))
-	var fire: Array[Color] = [Color(1, 0.15, 0.05), Color(1, 0.45, 0.05), Color(1, 0.85, 0.2)]
-	for k in 3:
-		var o := Vector2(0, (2 - k) * 4)
-		for d in [Vector2(-4, 0), Vector2(4, 0), Vector2(0, -4), Vector2(0, 4)]:
-			hud.draw_string(font, Vector2(-300, 70) + o + d, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 104,
-					Color(0, 0, 0, 0.6 * slam))
-		hud.draw_string(font, Vector2(-300, 70) + o, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 104,
-				Color(fire[k].r, fire[k].g, fire[k].b, slam))
-	hud.draw_string(font, Vector2(-300, 70), GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 104,
-			Color(1, 1, 0.85, 0.35 * slam))
-	hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	else:
+		var logo_at := Vector2(335, 150)
+		hud.draw_set_transform(logo_at, -0.06, Vector2(sc, sc))
+		var fire: Array[Color] = [Color(1, 0.15, 0.05), Color(1, 0.45, 0.05), Color(1, 0.85, 0.2)]
+		for k2 in 3:
+			var o := Vector2(0, (2 - k2) * 4)
+			hud.draw_string(font, Vector2(-300, 70) + o, GAME_TITLE, HORIZONTAL_ALIGNMENT_CENTER, 600, 104,
+					Color(fire[k2].r, fire[k2].g, fire[k2].b, slam))
+		hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if slam >= 1.0 and t < 0.6:
 		hud.draw_rect(Rect2(0, 0, 1280, 720), Color(1, 0.8, 0.5, (0.6 - t) * 1.5))
-	_neon(font, Vector2(0, 268), "STREET FIGHTS  ·  KARACHI  VS  HUNZA", 20, Color(0.3, 0.9, 1.0, 0.9), 580)
+	_neon(font, Vector2(0, 268), "STREET FIGHTS  ·  AROUND THE WORLD", 20, Color(0.3, 0.9, 1.0, 0.9), 580)
 
 	for i in TITLE_ITEMS.size():
 		var label: String = TITLE_ITEMS[i]
@@ -1157,11 +1191,55 @@ func _portrait(id: String, kind: String, r: Rect2, mirror: bool, tint := Color.W
 		hud.draw_texture_rect_region(tex, r, src, tint)
 
 
-func _speech(font: Font, at: Vector2, text: String, width: float, col: Color) -> void:
-	var box := Rect2(at - Vector2(12, 34), Vector2(width + 24, 52))
-	hud.draw_rect(box, Color(0, 0, 0, 0.75))
-	hud.draw_rect(box, col, false, 3.0)
-	hud.draw_string(font, at, text, HORIZONTAL_ALIGNMENT_CENTER, width, 22, Color.WHITE)
+## Comic-book speech bubble: white rounded balloon, thick black outline, a tail pointing at the speaker.
+## `at` is the top-left of the text area; `tail_to` is where the tail points.
+func _speech(font: Font, at: Vector2, text: String, width: float, tail_to: Vector2, pop := 1.0) -> void:
+	var fs := 24
+	var tsz := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, width, fs)
+	var pad := Vector2(26, 18)
+	var box := Rect2(at - pad, Vector2(width, tsz.y) + pad * 2.0)
+	var s: float = 0.6 + 0.4 * pop
+	var c := box.get_center()
+	box = Rect2(c - box.size * 0.5 * s, box.size * s)
+	# tail: a wedge from the balloon's edge toward the speaker
+	var base_c := Vector2(clamp(tail_to.x, box.position.x + 40, box.end.x - 40),
+			box.end.y - 4 if tail_to.y > box.end.y else box.position.y + 4)
+	var tail := PackedVector2Array([base_c + Vector2(-18, 0), base_c + Vector2(18, 0),
+			base_c.lerp(tail_to, 0.55)])
+	var outline := StyleBoxFlat.new()
+	outline.bg_color = Color.BLACK
+	outline.set_corner_radius_all(int(box.size.y * 0.5))
+	outline.draw(hud.get_canvas_item(), box.grow(5))
+	var grown := PackedVector2Array([tail[0] + Vector2(-6, 0), tail[1] + Vector2(6, 0),
+			tail[2] + (tail[2] - base_c).normalized() * 7.0])
+	hud.draw_colored_polygon(grown, Color.BLACK)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(1, 1, 0.97)
+	fill.set_corner_radius_all(int(box.size.y * 0.5))
+	fill.draw(hud.get_canvas_item(), box)
+	hud.draw_colored_polygon(tail, Color(1, 1, 0.97))
+	if pop >= 1.0:
+		hud.draw_multiline_string(font, at + Vector2(0, fs), text, HORIZONTAL_ALIGNMENT_CENTER, width, fs,
+				-1, Color(0.08, 0.06, 0.1))
+
+
+## A speech bubble over a fighter's head during the match.
+func _bubble(f: Fighter, text: String, seconds: float) -> void:
+	_bubbles.append({"f": f, "text": text, "from": _match_time, "until": _match_time + seconds})
+
+
+func _draw_bubbles(font: Font) -> void:
+	for b in _bubbles:
+		if _match_time > b["until"] or not is_instance_valid(b["f"]):
+			continue
+		var f: Fighter = b["f"]
+		var head: Vector2 = f.get_global_transform_with_canvas().origin + Vector2(0, -f.H * 1.05)
+		var w := 300.0
+		var at := head + Vector2(-w * 0.5 + 60.0 * (1 if f.facing > 0 else -1), -110)
+		at.x = clamp(at.x, 30.0, 1250.0 - w)
+		at.y = max(at.y, 110.0)
+		var pop: float = clamp((_match_time - b["from"]) / 0.12, 0.0, 1.0)
+		_speech(font, at, b["text"], w, head, pop)
 
 
 func _draw_versus(font: Font) -> void:
@@ -1184,10 +1262,12 @@ func _draw_versus(font: Font) -> void:
 		_neon(font, Vector2(0, 400), "VS", int(lerp(260.0, 150.0, pop)), Color(1, 0.85, 0.2))
 	_outlined(font, Vector2(-320, 680), Characters.get_def(id1)["name"], 46, Color(0.4, 0.75, 1.0))
 	_outlined(font, Vector2(320, 680), Characters.get_def(id2)["name"], 46, Color(1.0, 0.4, 0.4))
-	if phase_time > 2.0 and phase_time < 5.0:
-		_speech(font, Vector2(40, 120), Characters.get_def(id1)["callout_text"], 560, Color(0.4, 0.75, 1.0))
-	if phase_time > 5.0:
-		_speech(font, Vector2(680, 120), Characters.get_def(id2)["callout_text"], 560, Color(1.0, 0.4, 0.4))
+	if phase_time > 1.6:
+		_speech(font, Vector2(60, 70), Characters.get_def(id1)["callout_text"], 480, Vector2(330, 260),
+				clamp((phase_time - 1.6) / 0.12, 0.0, 1.0))
+	if phase_time > 4.4:
+		_speech(font, Vector2(740, 70), Characters.get_def(id2)["callout_text"], 480, Vector2(950, 260),
+				clamp((phase_time - 4.4) / 0.12, 0.0, 1.0))
 	hud.draw_string(font, Vector2(0, 712), "Punch / Enter to skip", HORIZONTAL_ALIGNMENT_CENTER,
 			1280, 14, Color(1, 1, 1, 0.45))
 
@@ -1211,11 +1291,12 @@ func _draw_victory(font: Font) -> void:
 	_neon(font, Vector2(name_x, 70), _result_text(_champ), 64, Color(1, 0.85, 0.2))
 	_outlined(font, Vector2(name_x, 120), "%s WINS THE DANGAL" % _champ.display_name, 26, Color.WHITE)
 	if phase_time > 1.4:
-		var sx := 40.0 if champ_left else 520.0
-		_speech(font, Vector2(sx, 640), _champ.def["tease_text"], 720, Color(1, 0.8, 0.2))
-	if phase_time > 4.2:
-		_speech(font, Vector2(small.position.x - 10, small.end.y + 48), loser.def["groan_text"],
-				400, Color(0.5, 0.6, 0.8))
+		var sx := 60.0 if champ_left else 560.0
+		_speech(font, Vector2(sx, 600), _champ.def["tease_text"], 640,
+				Vector2(big.position.x + big.size.x * 0.5, 470), clamp((phase_time - 1.4) / 0.12, 0.0, 1.0))
+	if phase_time > 3.4:
+		_speech(font, Vector2(small.position.x + 10, small.end.y + 40), loser.def["groan_text"],
+				360, Vector2(small.get_center().x, small.end.y - 20), clamp((phase_time - 3.4) / 0.12, 0.0, 1.0))
 	if phase_time > 1.5:
 		hud.draw_string(font, Vector2(0, 712), "Enter / Start: rematch      Kick: character select",
 				HORIZONTAL_ALIGNMENT_CENTER, 1280, 16, Color(1, 1, 1, 0.7))

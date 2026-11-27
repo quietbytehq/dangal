@@ -242,6 +242,7 @@ const DATA := {
 		"ultra_release": 0.2,
 		"ultra_damage": 350,
 		"callout_text": "Bismillah. Brother, come. Today we test our strength with honor.",
+		"fight_start_text": "Bismillah!",
 		"tease_text": "Alhamdulillah. You fought well, brother. Train harder and come back.",
 		"groan_text": "Alhamdulillah. You are strong. Today was not my day.",
 		"attacks": {
