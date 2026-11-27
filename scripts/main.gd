@@ -1104,14 +1104,16 @@ func _menu_row(x: float, y: float, label: String, hint: String, sel: bool, t: fl
 
 func _draw_menu(t: float) -> void:
 	for i in TITLE_ITEMS.size():
+		if _options_open:
+			break      # the options card takes the menu's place
 		var label: String = TITLE_ITEMS[i]
 		var y := 372.0 + i * 46.0
 		var x := 70.0 - i * 7.5      # follow the slanted panel edge
 		_menu_row(x, y, label, TITLE_HINTS.get(label, ""), i == _menu_idx and not _options_open, t)
-	var hint := "↑ ↓  choose      Punch / Enter  select"
+	var hint := "Up / Down  choose      Punch / Enter  select"
 	if _options_open:
 		# options card, slid out beside the menu
-		var card := Rect2(150, 470, 330, 140)
+		var card := Rect2(40, 340, 360, 150)
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color(0.06, 0.03, 0.13, 0.95)
 		sb.border_color = Color(0.3, 0.9, 1.0, 0.8)
@@ -1137,9 +1139,11 @@ func _draw_menu(t: float) -> void:
 					hud.draw_rect(Rect2(lx + k * 16, yy - 16, 11, 14), Color(1, 0.55, 0.85) if on else Color(1, 1, 1, 0.15))
 				hud.draw_string(_ui_font, Vector2(lx + 56, yy), LEVELS[cpu_level], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, col)
 				if sel:
-					hud.draw_string(_ui_font, Vector2(lx - 22, yy), "◀", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, col)
-					hud.draw_string(_ui_font, Vector2(lx + 136, yy), "▶", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, col)
-		hint = "← →  change      Kick  back"
+					# little arrows either side (drawn, the menu font has no arrow glyphs)
+					var cy := yy - 9.0
+					hud.draw_colored_polygon(PackedVector2Array([Vector2(lx - 8, cy - 7), Vector2(lx - 8, cy + 7), Vector2(lx - 18, cy)]), col)
+					hud.draw_colored_polygon(PackedVector2Array([Vector2(lx + 156, cy - 7), Vector2(lx + 156, cy + 7), Vector2(lx + 166, cy)]), col)
+		hint = "Left / Right  change      Kick  back"
 	hud.draw_string(_ui_font, Vector2(30, 682), hint, HORIZONTAL_ALIGNMENT_LEFT, 460, 18, Color(1, 1, 1, 0.6))
 	hud.draw_string(_ui_font, Vector2(30, 708), "a QuietByte game", HORIZONTAL_ALIGNMENT_LEFT, 460, 15, Color(1, 1, 1, 0.38))
 

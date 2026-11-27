@@ -580,20 +580,20 @@ func _throwing(_delta: float) -> void:
 	match str(th["path"]):
 		"behind":   # suplex: over our head, lands behind us head-first
 			dx = lerpf(d0, -d0 * 1.6, u)
-			lift = sin(u * PI) * H * 1.0
+			lift = sin(u * PI) * H * 0.8
 			rot = -facing * PI * u
 		"slam":     # power slam: lifted high in front, driven straight down
 			var up := minf(u / 0.55, 1.0)
-			lift = H * 1.15 * (sin(up * PI * 0.5) if u < 0.55 else 1.0 - pow((u - 0.55) / 0.45, 2.0))
+			lift = H * 0.7 * (sin(up * PI * 0.5) if u < 0.55 else 1.0 - pow((u - 0.55) / 0.45, 2.0))
 			dx = d0 + H * 0.25 * u
 			rot = facing * PI * 0.5 * up
 		"spike":    # wrestler's lift: hoisted over the shoulder, one full turn, spiked down
-			lift = sin(u * PI) * H * 1.3
+			lift = sin(u * PI) * H * 0.75
 			dx = d0 + H * 0.5 * u
 			rot = facing * TAU * u * 0.75
 		"toss":     # kicked up and away, spinning
 			dx = d0 + H * 2.3 * u
-			lift = sin(u * PI) * H * 0.8
+			lift = sin(u * PI) * H * 0.6
 			rot = facing * TAU * 1.5 * u
 		"palm":     # blasted flat across the stage
 			dx = d0 + H * 2.8 * (1.0 - pow(1.0 - u, 2.0))
