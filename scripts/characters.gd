@@ -221,9 +221,9 @@ const DATA := {
 	},
 	"jameel": {
 		"name": "JAMEEL",
-		"from": "Makhachkala",
-		"country": "DAGESTAN",
-		"flag": "dagestan",
+		"from": "Dagestan",
+		"country": "RUSSIA",
+		"flag": "ru",
 		"style": "Sambo striker",
 		"age": 30,
 		"height": "1.80 m",
