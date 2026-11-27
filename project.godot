@@ -4,7 +4,7 @@ config_version=5
 [application]
 
 config/name="Dangal"
-config/version="0.6.0"
+config/version="0.7.0"
 config/description="Dangal — a 2D arcade fighting game by QuietByte"
 config/icon="res://icon.png"
 run/main_scene="res://scenes/main.tscn"
