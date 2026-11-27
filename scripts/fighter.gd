@@ -9,6 +9,7 @@ signal knocked_out(fighter: Fighter)
 signal landed_hit(fighter: Fighter, blocked: bool)
 signal quake(amount: float)
 signal ultra_requested(fighter: Fighter)
+signal threw(fighter: Fighter, move_name: String)
 
 const SPECIAL_COOLDOWN := 1.4
 const KICK_SPECIAL_COOLDOWN := 1.2
@@ -20,6 +21,23 @@ const CROUCH_POSE := 0.22     # where in the crouch-kick clip the crouch pose si
 const GUARD_POSE := 0.45      # where in the block clips the guard is fully up
 const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48, "tiago": 0.45, "meilin": 0.6, "jameel": 0.5}   # where each victory clip hits its pose
 const METER_MAX := 100.0
+## Close-range throws (Forward + Punch up close). Each fighter flings the opponent his own way:
+## path = how the victim flies; grab/throw = this fighter's clips for the grab and the follow-through.
+const THROW_RANGE := 0.62      # in body heights, between the two fighters
+const THROW_GRAB := 0.3        # seconds holding the opponent before the throw
+const THROWS := {
+	"rustam": {"name": "PAHLAVAN SUPLEX", "path": "behind", "grab": "jab", "throw": "crouch_punch",
+			"fly": 0.75, "damage": 140, "quake": 14.0, "vfx": "rock_burst"},
+	"babasher": {"name": "SHER POWER SLAM", "path": "slam", "grab": "jab", "throw": "crouch_punch",
+			"fly": 0.8, "damage": 150, "quake": 18.0, "vfx": "rock_burst"},
+	"tiago": {"name": "CAPOEIRA LAUNCH", "path": "toss", "grab": "jab", "throw": "roundhouse",
+			"fly": 0.85, "damage": 120, "quake": 8.0, "vfx": "fire_burst"},
+	"meilin": {"name": "DRAGON PALM TOSS", "path": "palm", "grab": "jab", "throw": "special",
+			"fly": 0.7, "damage": 120, "quake": 8.0, "vfx": "chi_orb"},
+	"jameel": {"name": "DAGESTAN SPIKE", "path": "spike", "grab": "crouch_punch", "throw": "jab",
+			"fly": 0.85, "damage": 150, "quake": 16.0, "vfx": "rock_burst"},
+}
+const THROWN_STATES := ["thrown", "down", "getup"]
 const EXTRA_JUMP := 0.4       # extra jump height on top of the clip's own, in body heights
 const WALK_BOOST := 1.2       # extra walking speed on top of the global game speed
 const JUMP_DRIFT := 2.1       # sideways jump speed, in walk speeds: enough to jump over the opponent
@@ -27,7 +45,7 @@ const JUMP_DRIFT := 2.1       # sideways jump speed, in walk speeds: enough to j
 const GROUND_ATTACKS := ["jab", "roundhouse", "crouch_punch", "crouch_kick", "kick_special"]
 const AIR_ATTACKS := ["jump_punch", "jump_kick"]
 const AIR_STATES := ["jump", "jump_punch", "jump_kick"]
-const ATTACKING := ["jab", "roundhouse", "crouch_punch", "crouch_kick", "kick_special",
+const ATTACKING := ["throw", "jab", "roundhouse", "crouch_punch", "crouch_kick", "kick_special",
 		"jump_punch", "jump_kick", "special", "ultra"]
 
 # Filled from Characters.DATA in setup()
@@ -80,6 +98,9 @@ var _next_hit_at := 0.0
 var _blockstun := 0.0
 var _impact_done := false
 var _props_hit: Array = []
+var _throw_t := 0.0
+var _throw_victim: Fighter
+var _throw_from := 0.0     # where the victim stood when grabbed, relative to us (in facing units)
 
 # CPU brain state
 var _cpu_held := {}
@@ -133,6 +154,10 @@ func reset_for_round(x: float) -> void:
 	state = "idle"
 	locked = true
 	frozen = false
+	_throw_victim = null
+	_visual.rotation = 0.0
+	_visual.position = Vector2.ZERO
+	z_index = 0
 	_play("idle")
 	health_changed.emit(self, health)
 
@@ -230,6 +255,12 @@ func _physics_process(delta: float) -> void:
 				_special()
 		"ultra":
 			_ultra()
+		"throw":
+			_throwing(delta)
+		"thrown":
+			# the thrower got interrupted: drop to the floor
+			if opponent == null or opponent.state != "throw":
+				land_from_throw(0)
 		"victory":
 			# play into the pose, then hold it
 			if has_anim("victory") and _sprite.animation == "victory" \
@@ -246,7 +277,8 @@ func _physics_process(delta: float) -> void:
 
 	flash = max(flash - delta, 0.0)
 	_update_tint()
-	_visual.position.y = -_extra_lift()
+	if state != "thrown":
+		_visual.position.y = -_extra_lift()
 	_cpu_pressed.clear()
 
 
@@ -271,6 +303,8 @@ func _grounded(delta: float) -> void:
 	elif _pressed("punch"):
 		if _did_quarter_circle() and special_cd <= 0.0:
 			_start_special()
+		elif fwd_held and _can_throw():
+			_start_throw()
 		elif _held("down"):
 			_start_attack("crouch_punch" if has_anim("crouch_punch") else "crouch_kick")
 		else:
@@ -489,6 +523,130 @@ func _special() -> void:
 # ---------------------------------------------------------------- ultra
 
 ## Hit flash, or the glowing aura while an ultra powers up.
+## Up close, grounded, and the opponent is standing or crouching (not mid-air, not already down).
+func _can_throw() -> bool:
+	if opponent == null or not THROWS.has(char_id):
+		return false
+	if opponent.state in AIR_STATES or opponent.state in THROWN_STATES or opponent.state in ["ko", "throw", "ultra", "intro"]:
+		return false
+	return abs(opponent.position.x - position.x) < H * THROW_RANGE + opponent.H * 0.3
+
+
+func _start_throw() -> void:
+	var th: Dictionary = THROWS[char_id]
+	state = "throw"
+	_throw_t = 0.0
+	_throw_victim = opponent
+	_throw_from = maxf(abs(opponent.position.x - position.x), H * 0.38)
+	_hold_pose(str(th["grab"]), 0.5)
+	Sound.sfx("block", -2.0)
+	say("kick_special_shout")
+	opponent.get_thrown(self)
+	threw.emit(self, str(th["name"]))
+
+
+## Called on the victim: let go of whatever he was doing and hang in our grip.
+func get_thrown(by: Fighter) -> void:
+	state = "thrown"
+	slide = 0.0
+	vel = Vector2.ZERO
+	_blockstun = 0.0
+	z_index = by.z_index + 1
+	_hold_pose("hit", 0.5)
+	say("hurt1", 1.0)
+
+
+func _throwing(_delta: float) -> void:
+	var v := _throw_victim
+	if v == null or v.state != "thrown":
+		if _sprite.animation != str(THROWS[char_id]["throw"]):
+			_set_idle()
+		return
+	var th: Dictionary = THROWS[char_id]
+	_throw_t += get_physics_process_delta_time()
+	var d0 := _throw_from
+	if _throw_t < THROW_GRAB:
+		# the grab: pull him in close
+		v._place_thrown(position.x + facing * lerpf(d0, H * 0.38, _throw_t / THROW_GRAB), 0.0, 0.0)
+		return
+	if _sprite.animation != str(th["throw"]):
+		_play(str(th["throw"]), _length(str(th["throw"])) / (float(th["fly"]) + 0.25))
+		Sound.sfx("spin_whoosh", -2.0, 0.05)
+	d0 = H * 0.38
+	var u := clampf((_throw_t - THROW_GRAB) / float(th["fly"]), 0.0, 1.0)
+	var dx := d0
+	var lift := 0.0
+	var rot := 0.0
+	match str(th["path"]):
+		"behind":   # suplex: over our head, lands behind us head-first
+			dx = lerpf(d0, -d0 * 1.6, u)
+			lift = sin(u * PI) * H * 1.0
+			rot = -facing * PI * u
+		"slam":     # power slam: lifted high in front, driven straight down
+			var up := minf(u / 0.55, 1.0)
+			lift = H * 1.15 * (sin(up * PI * 0.5) if u < 0.55 else 1.0 - pow((u - 0.55) / 0.45, 2.0))
+			dx = d0 + H * 0.25 * u
+			rot = facing * PI * 0.5 * up
+		"spike":    # wrestler's lift: hoisted over the shoulder, one full turn, spiked down
+			lift = sin(u * PI) * H * 1.3
+			dx = d0 + H * 0.5 * u
+			rot = facing * TAU * u * 0.75
+		"toss":     # kicked up and away, spinning
+			dx = d0 + H * 2.3 * u
+			lift = sin(u * PI) * H * 0.8
+			rot = facing * TAU * 1.5 * u
+		"palm":     # blasted flat across the stage
+			dx = d0 + H * 2.8 * (1.0 - pow(1.0 - u, 2.0))
+			lift = sin(u * PI) * H * 0.3
+			rot = facing * PI * 0.5 * minf(u * 3.0, 1.0)
+	v._place_thrown(position.x + facing * dx, lift, rot)
+	if u >= 1.0:
+		_throw_land(v, th)
+
+
+func _throw_land(v: Fighter, th: Dictionary) -> void:
+	_throw_victim = null
+	quake.emit(float(th["quake"]))
+	Sound.sfx("ground_pound", 0.0, 0.05)
+	Sound.sfx("body_fall", 0.0, 0.02)
+	Sound.sfx("punch")
+	Vfx.spawn(get_parent(), str(th["vfx"]), Vector2(v.position.x, floor_y - v.H * 0.15), 0.8)
+	gain_meter(12.0)
+	v.land_from_throw(int(th["damage"]))
+
+
+## Called on the victim by the thrower each frame: x on the floor, height above it, body spin.
+func _place_thrown(x: float, lift: float, rot: float) -> void:
+	position.x = clampf(x, bounds.x, bounds.y)
+	position.y = floor_y
+	# spin around the middle of the body, not the feet
+	var pivot := Vector2(0, -H * 0.5)
+	_visual.rotation = rot
+	_visual.position = pivot - pivot.rotated(rot) + Vector2(0, -lift)
+
+
+func land_from_throw(damage: int) -> void:
+	_visual.rotation = 0.0
+	_visual.position = Vector2.ZERO
+	z_index = 0
+	combo = 1
+	health = max(health - damage, 0)
+	flash = 0.1
+	gain_meter(6.0)
+	health_changed.emit(self, health)
+	landed_hit.emit(self, false)
+	if health <= 0:
+		state = "ko"
+		_play("knockdown", 2.0)
+		say("ko_cry")
+		knocked_out.emit(self)
+	else:
+		state = "down"
+		# start the fall clip near its end so he's already flat on the floor
+		_play("knockdown", 1.6)
+		_sprite.frame = int(_counts.get("knockdown", 1) * 0.55)
+
+
 func _update_tint() -> void:
 	if flash > 0.0:
 		_sprite.modulate = Color(2.2, 2.2, 2.2)
@@ -548,7 +706,7 @@ func celebrate() -> void:
 ## Returns true if the hit connected, false if it was blocked or ignored.
 ## Every attack can be blocked by holding back, standing or crouching.
 func take_hit(damage: int, push: float, hitstun: float, from_dir: int, low := false) -> bool:
-	if state == "ko":
+	if state == "ko" or state in THROWN_STATES:
 		return false
 	var can_guard: bool = state in ["idle", "walk", "crouch", "block", "crouch_block"] and not locked
 	# any attack can be blocked by holding back, standing or crouching
@@ -594,6 +752,17 @@ func _on_animation_finished() -> void:
 		state = "idle"
 		_play("idle")
 		return
+	if state == "down":
+		# lie there a beat, then get up by playing the fall backwards
+		get_tree().create_timer(0.35).timeout.connect(func():
+			if state == "down":
+				state = "getup"
+				_play("knockdown", -2.2))
+		return
+	if state == "getup" or state == "throw":
+		state = "idle"
+		_play("idle")
+		return
 	if state in GROUND_ATTACKS or state in AIR_STATES or state in ["special", "hit", "ultra"]:
 		state = "idle"
 		_play("idle")
@@ -604,7 +773,7 @@ func _on_animation_finished() -> void:
 func get_hurtbox() -> Rect2:
 	var low: bool = state in ["crouch", "crouch_kick", "crouch_punch", "crouch_block"]
 	var h := H * (0.62 if low else 0.95)
-	if state == "ko":
+	if state == "ko" or state in THROWN_STATES:
 		h = H * 0.25
 	if state in AIR_STATES:
 		h = H * 0.6   # tucked
@@ -636,6 +805,8 @@ func _bump_props() -> void:
 ## Each pushes half the overlap; against a wall the other one takes all of it.
 func _separate_from_opponent() -> void:
 	if opponent == null or state == "ko" or opponent.state == "ko":
+		return
+	if state in ["throw", "thrown"] or opponent.state in ["throw", "thrown"]:
 		return
 	# a jumping fighter sails over the other one's head; push apart only once he lands
 	if _jump_lift() > H * 0.3 or opponent._jump_lift() > opponent.H * 0.3:
@@ -732,6 +903,10 @@ func _cpu_think(delta: float) -> void:
 			_cpu_held["up"] = true
 			_cpu_held[fwd] = true
 	else:
+		if _can_throw() and randf() < [0.10, 0.18, 0.28][cpu_level]:
+			_cpu_held[fwd] = true
+			_cpu_pressed["punch"] = true
+			return
 		var r := randf()
 		if r < 0.25:
 			_cpu_pressed["punch"] = true

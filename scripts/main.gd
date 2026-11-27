@@ -31,7 +31,9 @@ const STAGES := [
 		"props": [["copper_pot", 115.0], ["basket", 245.0], ["matka", 1165.0], ["copper_pot", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
-const TITLE_ITEMS := ["ARCADE  (vs CPU)", "VERSUS  (2 players)", "HOW TO PLAY", "CPU", "QUIT"]
+const TITLE_ITEMS := ["ARCADE", "VERSUS", "OPTIONS", "HOW TO PLAY", "QUIT"]
+const TITLE_HINTS := {"ARCADE": "fight the CPU", "VERSUS": "two players"}
+const OPTION_ITEMS := ["CPU LEVEL", "BACK"]
 const PAUSE_ITEMS := ["RESUME", "HOW TO PLAY", "CHARACTER SELECT", "TITLE SCREEN"]
 
 ## How to Play: [action, player 1 keys, player 2 keys, joypad]
@@ -54,6 +56,7 @@ const HELP_MOVES := [
 	["Block", "Hold Back (away from your opponent). Hold Back + Down to block crouching"],
 	["Special", "Special   or   Down, Down-Forward, Forward + Punch"],
 	["Kick special", "Forward + Special   or   Down, Down-Forward, Forward + Kick"],
+	["Throw", "Up close: Forward + Punch  (every fighter has his own slam)"],
 	["Ultra", "Fill the blue meter, then press Ultra"],
 ]
 
@@ -99,6 +102,12 @@ var cpu_level := 1
 var stage_idx := 0
 var paused := false
 var _menu_idx := 0
+## Options sub-menu on the title screen
+var _options_open := false
+var _opt_idx := 0
+## Menu font (Rajdhani, SIL OFL); falls back to the engine font
+var _ui_font: Font
+var _ui_bold: Font
 var _pause_idx := 0
 var _cues := {}
 var _round_winner: Fighter
@@ -148,6 +157,8 @@ func _ready() -> void:
 		_stage_tex[path] = load(path) if ResourceLoader.exists(path) else null
 	_set_stage(0)
 
+	_ui_font = load("res://assets/fonts/rajdhani-latin-600-normal.woff2") if ResourceLoader.exists("res://assets/fonts/rajdhani-latin-600-normal.woff2") else ThemeDB.fallback_font
+	_ui_bold = load("res://assets/fonts/rajdhani-latin-700-normal.woff2") if ResourceLoader.exists("res://assets/fonts/rajdhani-latin-700-normal.woff2") else _ui_font
 	_logo_tex = load("res://assets/title/logo.png") if ResourceLoader.exists("res://assets/title/logo.png") else null
 	# newest fighter first, so a new character greets the player
 	var ids: Array = Characters.ROSTER.duplicate()
@@ -214,6 +225,9 @@ func _smoke_test() -> void:
 		phase = "fight"
 		p1.locked = false
 		p2.locked = false
+		# every fighter throws once, right at the start
+		p1.position.x = p2.position.x - p1.facing * p1.H * 0.45
+		p1._start_throw()
 		# throw some props around so their physics run too
 		for prop in get_tree().get_nodes_in_group("props"):
 			prop.hit(Vector2(randf_range(-600, 600), -500), 200)
@@ -244,6 +258,11 @@ func _shots() -> void:
 	await snap.call("title_b")
 	await wait.call(1.3)
 	await snap.call("title_c")
+	_menu_idx = TITLE_ITEMS.find("OPTIONS")
+	_options_open = true
+	await wait.call(0.3)
+	await snap.call("title_options")
+	_options_open = false
 	_open_help()
 	await wait.call(0.2)
 	await snap.call("help_controls")
@@ -272,11 +291,25 @@ func _shots() -> void:
 		_start_match()
 		p1.cpu = true
 		p1.cpu_level = 2
-		await wait.call(0.4)
-		await snap.call("s%d_intro_a" % st)
-		await wait.call(1.6)
+		await wait.call(2.0)
 		await snap.call("s%d_intro_b" % st)
 		await wait.call(1.2)
+		# scripted throw: player 1 grabs player 2 and slams him his own way
+		p1.locked = true
+		p2.locked = true
+		p1.position.x = p2.position.x - p1.facing * p1.H * 0.45
+		p1.reset_physics_interpolation()
+		p1._set_idle()
+		p2._set_idle()
+		p1._start_throw()
+		await wait.call(Fighter.THROW_GRAB + float(Fighter.THROWS[p1.char_id]["fly"]) * 0.5)
+		await snap.call("s%d_throw_mid" % st)
+		await wait.call(float(Fighter.THROWS[p1.char_id]["fly"]) * 0.5 + 0.15)
+		await snap.call("s%d_throw_land" % st)
+		print("SHOTS throw %s: p2 state=%s hp=%d" % [p1.char_id, p2.state, p2.health])
+		await wait.call(1.6)
+		p1.locked = false
+		p2.locked = false
 		print("SHOTS stage %d video playing=%s pos=%.2f" % [st, bg_video.is_playing(), bg_video.stream_position])
 		if st == 0:
 			# scripted cross-up: player 1 jumps over a standing player 2
@@ -297,8 +330,8 @@ func _shots() -> void:
 			await snap.call("s0_jump_over_landed")
 			print("SHOTS cross-up before: %s  after: p1 x=%d facing=%d | p2 x=%d facing=%d" % [
 					before, p1.position.x, p1.facing, p2.position.x, p2.facing])
-		for k in 6:
-			if k == 3:
+		for k in 2:
+			if k == 1:
 				p1.meter = 100.0
 			await snap.call("s%d_fight_%d" % [st, k])
 			await wait.call(1.0)
@@ -360,6 +393,7 @@ func _enter_title() -> void:
 	phase = "title"
 	phase_time = 0.0
 	_menu_idx = 0
+	_options_open = false
 	_set_stage(randi() % STAGES.size())
 	# attract mode: a slideshow of the fighters' action shots (drawn in _draw_title)
 	if _slides.is_empty():
@@ -378,31 +412,57 @@ func _process_title() -> void:
 	if _help_open:
 		_process_help()
 		return
+	if _options_open:
+		_process_options()
+		return
 	if _pressed("p1_up") or _pressed("p2_up"):
 		_menu_idx = (_menu_idx - 1 + TITLE_ITEMS.size()) % TITLE_ITEMS.size()
 		Sound.sfx("whoosh", -12.0)
 	elif _pressed("p1_down") or _pressed("p2_down"):
 		_menu_idx = (_menu_idx + 1) % TITLE_ITEMS.size()
 		Sound.sfx("whoosh", -12.0)
-	elif TITLE_ITEMS[_menu_idx] == "CPU" and (_pressed("p1_left") or _pressed("p1_right")):
-		cpu_level = (cpu_level + (1 if _pressed("p1_right") else -1) + LEVELS.size()) % LEVELS.size()
-		Sound.sfx("block", -6.0)
 	elif _pressed("p1_punch") or _pressed("start"):
 		match TITLE_ITEMS[_menu_idx]:
-			"ARCADE  (vs CPU)":
+			"ARCADE":
 				p2_cpu = true
 				Sound.sfx("punch")
 				_enter_select()
-			"VERSUS  (2 players)":
+			"VERSUS":
 				p2_cpu = false
 				Sound.sfx("punch")
 				_enter_select()
+			"OPTIONS":
+				_options_open = true
+				_opt_idx = 0
+				Sound.sfx("block", -6.0)
 			"HOW TO PLAY":
 				_open_help()
-			"CPU":
-				cpu_level = (cpu_level + 1) % LEVELS.size()
 			"QUIT":
 				get_tree().quit()
+
+
+func _process_options() -> void:
+	if _pressed("p1_kick") or _pressed("ui_cancel"):
+		_options_open = false
+		Sound.sfx("whoosh", -12.0)
+		return
+	if _pressed("p1_up") or _pressed("p2_up"):
+		_opt_idx = (_opt_idx - 1 + OPTION_ITEMS.size()) % OPTION_ITEMS.size()
+		Sound.sfx("whoosh", -12.0)
+	elif _pressed("p1_down") or _pressed("p2_down"):
+		_opt_idx = (_opt_idx + 1) % OPTION_ITEMS.size()
+		Sound.sfx("whoosh", -12.0)
+	elif OPTION_ITEMS[_opt_idx] == "CPU LEVEL" and (_pressed("p1_left") or _pressed("p1_right")):
+		cpu_level = (cpu_level + (1 if _pressed("p1_right") else -1) + LEVELS.size()) % LEVELS.size()
+		Sound.sfx("block", -6.0)
+	elif _pressed("p1_punch") or _pressed("start"):
+		match OPTION_ITEMS[_opt_idx]:
+			"CPU LEVEL":
+				cpu_level = (cpu_level + 1) % LEVELS.size()
+				Sound.sfx("block", -6.0)
+			"BACK":
+				_options_open = false
+				Sound.sfx("whoosh", -12.0)
 
 
 # ---------------------------------------------------------------- character select
@@ -564,6 +624,7 @@ func _spawn(p: int, id: String, tint: Color, pitch: float) -> Fighter:
 	f.landed_hit.connect(_on_hit)
 	f.quake.connect(func(amount: float): shake = max(shake, amount))
 	f.ultra_requested.connect(_on_ultra)
+	f.threw.connect(func(who: Fighter, move_name: String): _bubble(who, move_name + "!", 1.3))
 	return f
 
 
@@ -784,7 +845,7 @@ func _draw_help(font: Font) -> void:
 						-1, 24 if c == 0 else 22, Color.WHITE if c == 0 else Color(1, 0.9, 0.6))
 	else:
 		for r in HELP_MOVES.size():
-			var y := 195.0 + r * 46.0
+			var y := 195.0 + r * 42.0
 			hud.draw_rect(Rect2(70, y - 30, 1140, 40), Color(1, 1, 1, 0.04 if r % 2 == 0 else 0.0))
 			hud.draw_string(font, Vector2(90, y), HELP_MOVES[r][0], HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
 			hud.draw_string(font, Vector2(420, y), HELP_MOVES[r][1], HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
@@ -1016,26 +1077,71 @@ func _draw_title(font: Font) -> void:
 		hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if slam >= 1.0 and t < 0.6:
 		hud.draw_rect(Rect2(0, 0, 1280, 720), Color(1, 0.8, 0.5, (0.6 - t) * 1.5))
-	_neon(font, Vector2(0, 268), "STREET FIGHTS  ·  AROUND THE WORLD", 20, Color(0.3, 0.9, 1.0, 0.9), 580)
+	hud.draw_string(_ui_bold, Vector2(0, 286), "STREET FIGHTS  ·  AROUND THE WORLD", HORIZONTAL_ALIGNMENT_CENTER,
+			600, 22, Color(0.3, 0.9, 1.0, 0.95))
 
+	_draw_menu(t)
+
+
+## One menu row: slim highlight bar with an accent edge, crisp text, optional small hint.
+func _menu_row(x: float, y: float, label: String, hint: String, sel: bool, t: float) -> void:
+	if sel:
+		var a := 0.85 + 0.15 * sin(t * 5.0)
+		var bar := PackedVector2Array([Vector2(x - 18, y - 30), Vector2(x + 330, y - 30),
+				Vector2(x + 322, y + 8), Vector2(x - 26, y + 8)])
+		hud.draw_colored_polygon(bar, Color(1, 0.3, 0.75, 0.22 * a))
+		hud.draw_line(Vector2(x - 18, y - 30), Vector2(x - 26, y + 8), Color(1, 0.55, 0.85, a), 4.0)
+		hud.draw_string(_ui_bold, Vector2(x + 2, y + 2), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color(0, 0, 0, 0.6))
+		hud.draw_string(_ui_bold, Vector2(x, y), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color(1, 0.93, 0.6))
+	else:
+		hud.draw_string(_ui_font, Vector2(x, y), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color(0.82, 0.82, 0.93))
+	if hint != "":
+		var w := (_ui_bold if sel else _ui_font).get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1,
+				30 if sel else 26).x
+		hud.draw_string(_ui_font, Vector2(x + w + 12, y - 2), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 17,
+				Color(0.55, 0.85, 1.0, 0.9 if sel else 0.55))
+
+
+func _draw_menu(t: float) -> void:
 	for i in TITLE_ITEMS.size():
 		var label: String = TITLE_ITEMS[i]
-		if label == "CPU":
-			label = "CPU LEVEL:  < %s >" % LEVELS[cpu_level]
-		var sel := i == _menu_idx
-		var y := 350.0 + i * 54.0
-		var x := 60.0 - i * 9.0      # follow the slanted panel edge
-		if sel:
-			var bar := PackedVector2Array([Vector2(x - 20, y - 36), Vector2(x + 440, y - 36),
-					Vector2(x + 425, y + 12), Vector2(x - 35, y + 12)])
-			hud.draw_colored_polygon(bar, Color(1, 0.3, 0.75, 0.25 + 0.1 * sin(t * 8.0)))
-			_neon(font, Vector2(x, y), "» " + label, 34, Color(1, 0.95, 0.6), 440, HORIZONTAL_ALIGNMENT_LEFT)
-		else:
-			hud.draw_string(font, Vector2(x, y), label, HORIZONTAL_ALIGNMENT_LEFT, 440, 28, Color(0.78, 0.78, 0.9))
-	var blink := 0.45 + 0.35 * sin(t * 4.0)
-	hud.draw_string(font, Vector2(30, 680), "↑/↓ choose    ←/→ change    Punch / Enter: select",
-			HORIZONTAL_ALIGNMENT_LEFT, 460, 17, Color(1, 1, 1, blink + 0.2))
-	hud.draw_string(font, Vector2(30, 708), "a QuietByte game", HORIZONTAL_ALIGNMENT_LEFT, 460, 14, Color(1, 1, 1, 0.4))
+		var y := 372.0 + i * 46.0
+		var x := 70.0 - i * 7.5      # follow the slanted panel edge
+		_menu_row(x, y, label, TITLE_HINTS.get(label, ""), i == _menu_idx and not _options_open, t)
+	var hint := "↑ ↓  choose      Punch / Enter  select"
+	if _options_open:
+		# options card, slid out beside the menu
+		var card := Rect2(150, 470, 330, 140)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.06, 0.03, 0.13, 0.95)
+		sb.border_color = Color(0.3, 0.9, 1.0, 0.8)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(10)
+		sb.draw(hud.get_canvas_item(), card)
+		hud.draw_string(_ui_bold, card.position + Vector2(20, 32), "OPTIONS", HORIZONTAL_ALIGNMENT_LEFT, -1, 20,
+				Color(0.3, 0.9, 1.0))
+		for j in OPTION_ITEMS.size():
+			var lab: String = OPTION_ITEMS[j]
+			var yy := card.position.y + 76.0 + j * 42.0
+			var sel := j == _opt_idx
+			if sel:
+				hud.draw_rect(Rect2(card.position.x + 10, yy - 28, card.size.x - 20, 36), Color(1, 0.3, 0.75, 0.2))
+			var col := Color(1, 0.93, 0.6) if sel else Color(0.82, 0.82, 0.93)
+			hud.draw_string(_ui_bold if sel else _ui_font, Vector2(card.position.x + 24, yy), lab,
+					HORIZONTAL_ALIGNMENT_LEFT, -1, 24, col)
+			if lab == "CPU LEVEL":
+				# level as three pips plus its name, ◀ ▶ when selected
+				var lx := card.position.x + 170.0
+				for k in LEVELS.size():
+					var on := k <= cpu_level
+					hud.draw_rect(Rect2(lx + k * 16, yy - 16, 11, 14), Color(1, 0.55, 0.85) if on else Color(1, 1, 1, 0.15))
+				hud.draw_string(_ui_font, Vector2(lx + 56, yy), LEVELS[cpu_level], HORIZONTAL_ALIGNMENT_LEFT, -1, 20, col)
+				if sel:
+					hud.draw_string(_ui_font, Vector2(lx - 22, yy), "◀", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, col)
+					hud.draw_string(_ui_font, Vector2(lx + 136, yy), "▶", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, col)
+		hint = "← →  change      Kick  back"
+	hud.draw_string(_ui_font, Vector2(30, 682), hint, HORIZONTAL_ALIGNMENT_LEFT, 460, 18, Color(1, 1, 1, 0.6))
+	hud.draw_string(_ui_font, Vector2(30, 708), "a QuietByte game", HORIZONTAL_ALIGNMENT_LEFT, 460, 15, Color(1, 1, 1, 0.38))
 
 
 ## Where each fighter's face sits in his call-out close-up (fractions of the image), for square tiles.
@@ -1326,11 +1432,14 @@ func _draw_victory(font: Font) -> void:
 	hud.draw_rect(small.grow(4), Color(0.3, 0.4, 0.6, 0.9), false, 4.0)
 	_portrait(loser.char_id, "beaten", small,
 			_mirror_for(loser.char_id, "beaten", -1 if champ_left else 1), Color(0.75, 0.8, 0.95))
-	var name_x := -240.0 if champ_left else 240.0
-	# dark band so the title reads over the close-up
-	hud.draw_rect(Rect2(big.position.x, 0, big.size.x, 150), Color(0, 0, 0, 0.55))
-	_neon(font, Vector2(name_x, 70), _result_text(_champ), 64, Color(1, 0.85, 0.2))
-	_outlined(font, Vector2(name_x, 120), "%s WINS THE DANGAL" % _champ.display_name, 26, Color.WHITE)
+	# the title sits over the loser's side, above the small panel, so the winner's face stays clear
+	var name_x: float = small.get_center().x - 640.0
+	var title := _result_text(_champ)
+	var tsize := 60
+	while tsize > 30 and font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, tsize).x > 430:
+		tsize -= 4
+	_neon(font, Vector2(name_x, 82), title, tsize, Color(1, 0.85, 0.2))
+	_outlined(font, Vector2(name_x, 128), "%s WINS THE DANGAL" % _champ.display_name, 22, Color.WHITE)
 	if phase_time > 1.4:
 		var sx := 60.0 if champ_left else 560.0
 		_speech(font, Vector2(sx, 600), _champ.def["tease_text"], 640,
