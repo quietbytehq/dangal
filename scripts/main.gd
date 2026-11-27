@@ -75,6 +75,9 @@ var _icon_tex: Texture2D
 ## Title screen: one action shot per fighter (assets/title/<id>.jpg) and the logo
 var _slides: Array[Texture2D] = []
 var _slide_names: Array[String] = []
+var _slide_ids: Array[String] = []
+## Country flag per fighter (assets/flags/<code>.png)
+var _flags := {}
 var _logo_tex: Texture2D
 ## Speech bubbles over fighters during a match: [{"f": Fighter, "text": String, "until": float}]
 var _bubbles: Array = []
@@ -146,7 +149,11 @@ func _ready() -> void:
 		if ResourceLoader.exists(sp):
 			_slides.append(load(sp))
 			var d := Characters.get_def(id)
+			_slide_ids.append(id)
 			_slide_names.append("%s  ·  %s" % [d["name"], d.get("country", d.get("from", ""))])
+	for id in Characters.ROSTER:
+		var fp := "res://assets/flags/%s.png" % Characters.get_def(id).get("flag", "")
+		_flags[id] = load(fp) if ResourceLoader.exists(fp) else null
 	for id in Characters.ROSTER:
 		var def := Characters.get_def(id)
 		_sprite_cache[id] = SpriteLibrary.load_character(def["sprites"], def["json"])
@@ -930,8 +937,8 @@ const SLIDE_FADE := 1.0
 func _draw_slide(i: int, age: float, alpha: float) -> void:
 	var tex := _slides[i % _slides.size()]
 	# slow push-in while the slide is on screen
-	var z := 1.0 + 0.07 * clamp(age / (SLIDE_TIME + SLIDE_FADE), 0.0, 1.0)
-	var sz := Vector2(1280, 720) * z
+	var z: float = 1.0 + 0.07 * clamp(age / (SLIDE_TIME + SLIDE_FADE), 0.0, 1.0)
+	var sz: Vector2 = Vector2(1280, 720) * z
 	hud.draw_texture_rect(tex, Rect2(Vector2(640, 360) - sz * 0.5, sz), false, Color(1, 1, 1, alpha))
 
 
@@ -948,8 +955,10 @@ func _draw_title(font: Font) -> void:
 		else:
 			_draw_slide(k, age, 1.0)
 		var name_a: float = clamp((age - 0.4) / 0.3, 0.0, 1.0) * clamp((SLIDE_TIME - age) / 0.3, 0.0, 1.0)
-		_outlined(font, Vector2(400, 690), _slide_names[k % _slide_names.size()], 26,
-				Color(1, 0.9, 0.55, name_a))
+		var cap: String = _slide_names[k % _slide_names.size()]
+		var cap_w := font.get_string_size(cap, HORIZONTAL_ALIGNMENT_LEFT, -1, 30).x
+		_outlined(font, Vector2(400, 690), cap, 30, Color(1, 0.9, 0.55, name_a))
+		_flag(_slide_ids[k % _slide_ids.size()], Rect2(1040 - cap_w * 0.5 - 88, 656, 72, 54), name_a)
 	# darken top and bottom
 	for i in 12:
 		var a := 0.06 * (12 - i)
@@ -1064,8 +1073,10 @@ func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
 	var y := 392.0
 	hud.draw_string(font, Vector2(x, y), def["name"], HORIZONTAL_ALIGNMENT_CENTER, 390, 34, Color.WHITE)
 	y += 26
-	hud.draw_string(font, Vector2(x, y), "%s  ·  %s" % [def.get("country", ""), str(def["from"]).to_upper()],
-			HORIZONTAL_ALIGNMENT_CENTER, 390, 16, Color(1, 0.85, 0.4))
+	var origin := "%s  ·  %s" % [def.get("country", ""), str(def["from"]).to_upper()]
+	hud.draw_string(font, Vector2(x + 18, y), origin, HORIZONTAL_ALIGNMENT_CENTER, 390, 16, Color(1, 0.85, 0.4))
+	var ow := font.get_string_size(origin, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
+	_flag(id, Rect2(x + 18 + 195 - ow * 0.5 - 34, y - 15, 26, 19.5))
 	y += 24
 	hud.draw_string(font, Vector2(x, y), "%s   ·   Age %s   ·   %s" % [def.get("style", ""), def.get("age", "?"),
 			def.get("height", "")], HORIZONTAL_ALIGNMENT_CENTER, 390, 15, Color(0.85, 0.85, 0.95))
@@ -1262,6 +1273,10 @@ func _draw_versus(font: Font) -> void:
 		_neon(font, Vector2(0, 400), "VS", int(lerp(260.0, 150.0, pop)), Color(1, 0.85, 0.2))
 	_outlined(font, Vector2(-320, 680), Characters.get_def(id1)["name"], 46, Color(0.4, 0.75, 1.0))
 	_outlined(font, Vector2(320, 680), Characters.get_def(id2)["name"], 46, Color(1.0, 0.4, 0.4))
+	var n1 := font.get_string_size(Characters.get_def(id1)["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 46).x
+	var n2 := font.get_string_size(Characters.get_def(id2)["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 46).x
+	_flag(id1, Rect2(320 - n1 * 0.5 - 84, 638, 68, 51))
+	_flag(id2, Rect2(960 + n2 * 0.5 + 16, 638, 68, 51))
 	if phase_time > 1.6:
 		_speech(font, Vector2(60, 70), Characters.get_def(id1)["callout_text"], 480, Vector2(330, 260),
 				clamp((phase_time - 1.6) / 0.12, 0.0, 1.0))
@@ -1335,6 +1350,15 @@ func _win_marks(at: Vector2, n: int) -> void:
 	for i in WINS_NEEDED:
 		var c := Color(1, 0.8, 0.2) if i < n else Color(0.2, 0.2, 0.2, 0.8)
 		hud.draw_circle(at + Vector2(i * 22 + 8, 8), 8, c)
+
+
+## A fighter's country flag with a thin dark border.
+func _flag(id: String, r: Rect2, alpha := 1.0) -> void:
+	var tex: Texture2D = _flags.get(id)
+	if tex == null:
+		return
+	hud.draw_rect(r.grow(3), Color(0, 0, 0, 0.8 * alpha))
+	hud.draw_texture_rect(tex, r, false, Color(1, 1, 1, alpha))
 
 
 func _outlined(font: Font, at: Vector2, text: String, size: int, col: Color) -> void:
