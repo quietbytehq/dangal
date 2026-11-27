@@ -14,18 +14,21 @@ const STAGES := [
 	{"name": "KARACHI ROOFTOP", "image": "res://assets/stage/karachi_rooftop.png", "music": "stage_karachi",
 		"video": "res://assets/stage/karachi_crowd_loop.ogv",
 		"props": [["crate", 105.0], ["matka", 235.0], ["drum", 1165.0], ["crate", 1045.0]]},
-	{"name": "HUNZA VALLEY", "image": "res://assets/stage/hunza_valley.png", "music": "stage_hunza",
+	{"name": "HUNZA VALLEY", "home": "babasher", "image": "res://assets/stage/hunza_valley.png", "music": "stage_hunza",
 		"video": "res://assets/stage/hunza_crowd_loop.ogv",
 		"props": [["firewood", 120.0], ["basket", 250.0], ["copper_pot", 1170.0], ["basket", 1050.0]]},
-	{"name": "AMAZON JUNGLE", "image": "res://assets/stage/amazon_jungle.png", "music": "stage_amazon",
+	{"name": "AMAZON JUNGLE", "home": "tiago", "image": "res://assets/stage/amazon_jungle.png", "music": "stage_amazon",
 		"video": "res://assets/stage/amazon_loop.ogv",
 		"props": [["crate", 110.0], ["basket", 240.0], ["firewood", 1160.0], ["crate", 1040.0]]},
-	{"name": "CHINA TEMPLE", "image": "res://assets/stage/china_temple.png", "music": "stage_china",
+	{"name": "CHINA TEMPLE", "home": "meilin", "image": "res://assets/stage/china_temple.png", "music": "stage_china",
 		"video": "res://assets/stage/china_loop.ogv",
 		"props": [["copper_pot", 115.0], ["crate", 245.0], ["matka", 1165.0], ["basket", 1045.0]]},
-	{"name": "DAGESTAN VILLAGE", "image": "res://assets/stage/dagestan_village.png", "music": "stage_dagestan",
+	{"name": "DAGESTAN VILLAGE", "home": "jameel", "image": "res://assets/stage/dagestan_village.png", "music": "stage_dagestan",
 		"video": "res://assets/stage/dagestan_loop.ogv",
 		"props": [["matka", 110.0], ["firewood", 240.0], ["basket", 1165.0], ["copper_pot", 1045.0]]},
+	{"name": "SHIRAZ PINK MOSQUE", "home": "rustam", "image": "res://assets/stage/iran_mosque.png", "music": "stage_iran",
+		"video": "res://assets/stage/iran_loop.ogv",
+		"props": [["copper_pot", 115.0], ["basket", 245.0], ["matka", 1165.0], ["copper_pot", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE  (vs CPU)", "VERSUS  (2 players)", "HOW TO PLAY", "CPU", "QUIT"]
@@ -470,6 +473,10 @@ func _process_select() -> void:
 			_cues.clear()
 			phase = "stage"
 			phase_time = 0.0
+			# the stage screen opens on player 1's home stage
+			for i in STAGES.size():
+				if STAGES[i].get("home", "") == _id(1):
+					_set_stage(i)
 
 
 # ---------------------------------------------------------------- stage select
