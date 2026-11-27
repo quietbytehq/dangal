@@ -27,7 +27,7 @@ const STAGES := [
 		"video": "res://assets/stage/dagestan_loop.ogv",
 		"props": [["matka", 110.0], ["firewood", 240.0], ["basket", 1165.0], ["copper_pot", 1045.0]]},
 	{"name": "SHIRAZ PINK MOSQUE", "home": "rustam", "image": "res://assets/stage/iran_mosque.png", "music": "stage_iran",
-		"video": "res://assets/stage/iran_loop.ogv",
+		"video": "res://assets/stage/iran_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_iran.ogg",
 		"props": [["copper_pot", 115.0], ["basket", 245.0], ["matka", 1165.0], ["copper_pot", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
@@ -72,6 +72,8 @@ var _fps_label: Label
 var world: Node2D
 var bg: Sprite2D
 var bg_video: VideoStreamPlayer
+## Crowd noise of the current stage, played under the music during a match
+var _crowd: AudioStreamPlayer
 var ambience: Ambience
 var title_show: TitleShow
 var _icon_tex: Texture2D
@@ -126,6 +128,9 @@ func _ready() -> void:
 	bg.z_index = -11          # behind the video, props (-1) and fighters (0)
 	world.add_child(bg)
 	# looping animated background on top of the still image (falls back to the image)
+	_crowd = AudioStreamPlayer.new()
+	_crowd.volume_db = -10.0
+	add_child(_crowd)
 	bg_video = VideoStreamPlayer.new()
 	bg_video.z_index = -10
 	bg_video.size = Vector2(1280, 720)
@@ -332,6 +337,18 @@ func _set_stage(i: int) -> void:
 		bg_video.visible = false
 
 
+func _crowd_start() -> void:
+	var path: String = STAGES[stage_idx].get("crowd", "")
+	if path == "" or not ResourceLoader.exists(path):
+		_crowd.stop()
+		return
+	var st: AudioStream = load(path)
+	if st is AudioStreamOggVorbis:
+		(st as AudioStreamOggVorbis).loop = true
+	_crowd.stream = st
+	_crowd.play()
+
+
 func _pressed(action: String) -> bool:
 	return Input.is_action_just_pressed(action)
 
@@ -392,6 +409,7 @@ func _process_title() -> void:
 
 func _clear_match() -> void:
 	_set_paused(false)
+	_crowd.stop()
 	if title_show:
 		title_show.queue_free()
 		title_show = null
@@ -533,6 +551,7 @@ func _start_match() -> void:
 	wins = {1: 0, 2: 0}
 	round_num = 1
 	Sound.play_music(STAGES[stage_idx]["music"])
+	_crowd_start()
 	_start_round()
 
 
