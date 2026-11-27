@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher", "tiago", "meilin"]
+const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel"]
 
 const DATA := {
 	"rustam": {
@@ -213,6 +213,62 @@ const DATA := {
 			"kick_special": {"damage": 55, "active": Vector2(0.30, 0.85), "time": 1.0, "hits": 3,
 				"move": 300.0, "box": Rect2(-0.40, -1.00, 1.05, 0.70), "hitstun": 0.40,
 				"push": 160.0, "sfx": "kick", "vfx": "fire_burst"},
+		},
+	},
+	"jameel": {
+		"name": "JAMEEL",
+		"from": "Makhachkala",
+		"country": "DAGESTAN",
+		"style": "Sambo striker",
+		"age": 30,
+		"height": "1.80 m",
+		"stats": {"POWER": 5, "SPEED": 3, "RANGE": 3, "DEFENSE": 4},
+		"fact": "Raised in a mountain village above the Caspian. Says Bismillah, takes off his papakha, and fights with the heart of a lion.",
+		"sprites": "res://assets/jameel",
+		"json": "jameel_sprites.json",
+		"voice": "jameel",
+		"health": 1080,
+		"walk_speed": 225.0,
+		"push_width": 0.28,
+		# Mountain Eagle: shoots in low for a takedown and slams the opponent to the stones
+		"special": "dash",
+		"special_name": "MOUNTAIN EAGLE",
+		"special_time": 1.0,
+		"special_release": 0.3,
+		"kick_special_name": "AVALANCHE KICK",
+		"ultra": "lion",
+		"ultra_name": "LION OF DAGESTAN",
+		"ultra_time": 3.8,
+		"ultra_release": 0.2,
+		"ultra_damage": 350,
+		"callout_text": "Bismillah. Come, brother. Let us see what Allah has written today.",
+		"tease_text": "Alhamdulillah. You fought well, brother. Train hard, and come back.",
+		"groan_text": "Alhamdulillah, in every state. Allah decides the outcome, and I accept it with patience.",
+		"attacks": {
+			# heavy straight right
+			"jab": {"damage": 65, "active": Vector2(0.22, 0.50), "time": 0.50,
+				"box": Rect2(0.10, -0.82, 0.60, 0.18), "hitstun": 0.38, "push": 170.0, "sfx": "punch"},
+			# front kick to the chest
+			"roundhouse": {"damage": 115, "active": Vector2(0.25, 0.60), "time": 0.85,
+				"box": Rect2(0.10, -0.80, 0.68, 0.32), "hitstun": 0.48, "push": 300.0, "sfx": "kick"},
+			# low lunging straight punch
+			"crouch_punch": {"damage": 52, "active": Vector2(0.25, 0.60), "time": 0.50,
+				"box": Rect2(0.10, -0.50, 0.66, 0.20), "hitstun": 0.32, "push": 130.0, "sfx": "punch"},
+			# sambo leg kick to the thigh
+			"crouch_kick": {"damage": 88, "active": Vector2(0.45, 0.78), "time": 0.75, "low": true,
+				"box": Rect2(0.08, -0.40, 0.72, 0.30), "hitstun": 0.42, "push": 190.0, "sfx": "kick"},
+			"jump_punch": {"damage": 80, "active": Vector2(0.08, 0.40), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.82, 0.58, 0.32), "hitstun": 0.42, "push": 170.0, "sfx": "punch"},
+			"jump_kick": {"damage": 92, "active": Vector2(0.38, 0.70), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.75, 0.72, 0.34), "hitstun": 0.45, "push": 220.0, "sfx": "kick"},
+			# Avalanche Kick: spinning back kick, then a sweeping arc of golden snow
+			"kick_special": {"damage": 65, "active": Vector2(0.15, 0.85), "time": 1.0, "hits": 2,
+				"move": 260.0, "box": Rect2(-0.20, -0.90, 1.00, 0.70), "hitstun": 0.45,
+				"push": 200.0, "sfx": "kick", "vfx": "fire_burst"},
+			# Mountain Eagle (the special): fast double-leg shot across the floor
+			"special": {"damage": 110, "active": Vector2(0.12, 0.55), "time": 1.0,
+				"move": 720.0, "box": Rect2(0.05, -0.70, 0.72, 0.55), "hitstun": 0.55,
+				"push": 340.0, "sfx": "kick", "vfx": "rock_burst"},
 		},
 	},
 }

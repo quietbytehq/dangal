@@ -1,0 +1,138 @@
+{
+  "frame_width": 640,
+  "frame_height": 365,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 317,
+    "y": 354
+  },
+  "body_height": 330,
+  "animations": {
+    "idle": {
+      "file": "jameel_idle.png",
+      "frames": 48,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "walk": {
+      "file": "jameel_walk.png",
+      "frames": 56,
+      "columns": 8,
+      "rows": 7,
+      "loop": true
+    },
+    "jab": {
+      "file": "jameel_jab.png",
+      "frames": 15,
+      "columns": 8,
+      "rows": 2,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "jameel_roundhouse.png",
+      "frames": 19,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "jameel_crouch_punch.png",
+      "frames": 23,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "jameel_crouch_kick.png",
+      "frames": 24,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump": {
+      "file": "jameel_jump.png",
+      "frames": 28,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "jameel_jump_punch.png",
+      "frames": 26,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "jameel_jump_kick.png",
+      "frames": 21,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "special": {
+      "file": "jameel_special.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "jameel_kick_special.png",
+      "frames": 34,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "ultra": {
+      "file": "jameel_ultra.png",
+      "frames": 74,
+      "columns": 8,
+      "rows": 10,
+      "loop": false
+    },
+    "block": {
+      "file": "jameel_block.png",
+      "frames": 22,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "jameel_crouch_block.png",
+      "frames": 33,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "hit": {
+      "file": "jameel_hit.png",
+      "frames": 22,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "jameel_knockdown.png",
+      "frames": 25,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "victory": {
+      "file": "jameel_victory.png",
+      "frames": 49,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "intro": {
+      "file": "jameel_intro.png",
+      "frames": 81,
+      "columns": 8,
+      "rows": 11,
+      "loop": false
+    }
+  }
+}

@@ -23,6 +23,9 @@ const STAGES := [
 	{"name": "CHINA TEMPLE", "image": "res://assets/stage/china_temple.png", "music": "stage_china",
 		"video": "res://assets/stage/china_loop.ogv",
 		"props": [["copper_pot", 115.0], ["crate", 245.0], ["matka", 1165.0], ["basket", 1045.0]]},
+	{"name": "DAGESTAN VILLAGE", "image": "res://assets/stage/dagestan_village.png", "music": "stage_dagestan",
+		"video": "res://assets/stage/dagestan_loop.ogv",
+		"props": [["matka", 110.0], ["firewood", 240.0], ["basket", 1165.0], ["copper_pot", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE  (vs CPU)", "VERSUS  (2 players)", "HOW TO PLAY", "CPU", "QUIT"]
@@ -166,7 +169,7 @@ func _smoke_test() -> void:
 	for st in STAGES.size():
 		_clear_match()
 		_set_stage(st)
-		# newest fighter first: stage 0 is Mei Lin vs Rustam, then the others take turns
+		# newest fighter first: stage 0 is Jameel vs Rustam, then the others take turns
 		var n := Characters.ROSTER.size()
 		_cursor = {1: (st + n - 1) % n, 2: st % n}
 		p2_cpu = true
@@ -217,14 +220,14 @@ func _shots() -> void:
 	await snap.call("help_moves")
 	_help_open = false
 	_enter_select()
-	_cursor = {1: 3, 2: 0}
+	_cursor = {1: 4, 2: 3}
 	p2_cpu = true
 	await wait.call(0.5)
 	await snap.call("select")
 	for st in STAGES.size():
 		_clear_match()
 		_set_stage(st)
-		# newest fighter first: stage 0 is Mei Lin vs Rustam, then the others take turns
+		# newest fighter first: stage 0 is Jameel vs Rustam, then the others take turns
 		var n := Characters.ROSTER.size()
 		_cursor = {1: (st + n - 1) % n, 2: st % n}
 		p2_cpu = true
@@ -566,8 +569,17 @@ func _process(delta: float) -> void:
 		"versus":
 			_process_versus()
 		"intro":
+			if round_num == 1 and _cue("entrance", 0.0):
+				# Jameel takes off his papakha before the first round
+				p1.play_intro(2.7)
+				p2.play_intro(2.7)
 			if round_num == 1 and _cue("taunt", 0.1):
 				p2.say("intro")
+			if round_num == 1 and _cue("bismillah", 1.9):
+				# said once, at the start of the fight
+				for f in [p1, p2]:
+					if f.char_id == "jameel":
+						f.say("bismillah")
 			if _cue("round", 1.3 if round_num == 1 else 0.2):
 				var final := banner == "FINAL ROUND"
 				Sound.announce("final_round" if final else ("round1" if round_num == 1 else "round2"))
@@ -958,7 +970,7 @@ func _draw_title(font: Font) -> void:
 
 
 ## Where each fighter's face sits in his call-out close-up (fractions of the image), for square tiles.
-const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3)}
+const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32)}
 const SELECT_COLS := 2
 const TILE := 150.0
 
@@ -1114,7 +1126,8 @@ func _meter_bar(r: Rect2, f: Fighter, right_side: bool) -> void:
 const PORTRAIT_FACING := {"rustam_callout": -1, "babasher_callout": -1,
 		"rustam_win": -1, "babasher_win": 1, "rustam_beaten": 1, "babasher_beaten": -1,
 		"tiago_callout": -1, "tiago_win": 1, "tiago_beaten": -1,
-		"meilin_callout": 1, "meilin_win": 1, "meilin_beaten": -1}
+		"meilin_callout": 1, "meilin_win": 1, "meilin_beaten": -1,
+		"jameel_callout": 1, "jameel_win": 1, "jameel_beaten": -1}
 
 
 ## True if the close-up must be mirrored so it faces `want` (-1 left, 1 right).

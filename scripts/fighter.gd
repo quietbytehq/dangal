@@ -18,7 +18,7 @@ const HIT_TIME := 0.45
 const BLOCKSTUN := 0.22
 const CROUCH_POSE := 0.22     # where in the crouch-kick clip the crouch pose sits
 const GUARD_POSE := 0.45      # where in the block clips the guard is fully up
-const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48, "tiago": 0.45, "meilin": 0.6}   # where each victory clip hits its pose
+const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48, "tiago": 0.45, "meilin": 0.6, "jameel": 0.5}   # where each victory clip hits its pose
 const METER_MAX := 100.0
 const EXTRA_JUMP := 0.4       # extra jump height on top of the clip's own, in body heights
 const WALK_BOOST := 1.2       # extra walking speed on top of the global game speed
@@ -135,6 +135,15 @@ func reset_for_round(x: float) -> void:
 	frozen = false
 	_play("idle")
 	health_changed.emit(self, health)
+
+
+## Round-one entrance (Jameel takes off his papakha). Plays while the fighter is still locked,
+## squeezed into `seconds` so it is over before FIGHT!
+func play_intro(seconds: float) -> void:
+	if not has_anim("intro"):
+		return
+	state = "intro"
+	_play("intro", _length("intro") / seconds)
 
 
 func has_anim(anim: String) -> bool:
@@ -485,7 +494,7 @@ func _update_tint() -> void:
 		_sprite.modulate = Color(2.2, 2.2, 2.2)
 	elif state in ["ultra", "ultra_wait"] and not special_spawned:
 		var pulse := 0.75 + 0.25 * sin(_time * 22.0)
-		var auras := {"beam": Color(0.55, 0.8, 1.6), "quake": Color(1.6, 1.15, 0.45), "rush": Color(0.75, 1.6, 0.6), "dragon": Color(1.7, 1.35, 0.4)}
+		var auras := {"beam": Color(0.55, 0.8, 1.6), "quake": Color(1.6, 1.15, 0.45), "rush": Color(0.75, 1.6, 0.6), "dragon": Color(1.7, 1.35, 0.4), "lion": Color(1.8, 1.4, 0.45)}
 		var aura: Color = auras.get(str(def.get("ultra", "beam")), Color(1.6, 1.15, 0.45))
 		_sprite.modulate = Color.WHITE.lerp(aura, pulse * 0.5)
 	else:
@@ -581,6 +590,10 @@ func take_hit(damage: int, push: float, hitstun: float, from_dir: int, low := fa
 
 
 func _on_animation_finished() -> void:
+	if state == "intro":
+		state = "idle"
+		_play("idle")
+		return
 	if state in GROUND_ATTACKS or state in AIR_STATES or state in ["special", "hit", "ultra"]:
 		state = "idle"
 		_play("idle")
