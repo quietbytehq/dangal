@@ -33,7 +33,7 @@ const THROWS := {
 	"tiago": {"name": "CAPOEIRA LAUNCH", "path": "toss", "grab": "jab", "throw": "roundhouse",
 			"fly": 0.85, "damage": 120, "quake": 8.0, "vfx": "fire_burst"},
 	"meilin": {"name": "DRAGON PALM TOSS", "path": "palm", "grab": "jab", "throw": "special",
-			"fly": 0.7, "damage": 120, "quake": 8.0, "vfx": "chi_orb"},
+			"fly": 0.7, "damage": 120, "quake": 8.0, "vfx": "fire_burst"},
 	"samandar": {"name": "BUZKASHI FLING", "path": "fling", "grab": "jab", "throw": "roundhouse",
 			"fly": 0.85, "damage": 140, "quake": 12.0, "vfx": "rock_burst"},
 	"jameel": {"name": "DAGESTAN SPIKE", "path": "spike", "grab": "crouch_punch", "throw": "jab",
