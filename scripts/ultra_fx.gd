@@ -93,6 +93,9 @@ func _physics_process(delta: float) -> void:
 			_next_rock = 0.045
 			var rb := Vfx.spawn(get_parent(), "rock_burst", Vector2(_wave_x + randf_range(-20, 20), f.floor_y),
 					randf_range(0.7, 0.95), randf() < 0.5, 6, 1.4)
+			if rb and kind == "stampede":
+				# Buck's stampede: golden dust kicked up by ghost bulls
+				rb.modulate = Color(1.6, 1.25, 0.55)
 			if rb and kind == "avalanche":
 				# Samandar's avalanche: the burst is snow and ice, not rock
 				rb.modulate = Color(0.9, 1.15, 1.7)

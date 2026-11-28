@@ -2,7 +2,7 @@
 import json, numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 W, H = 1280, 720
-LON0, LON1 = -85.0, 135.0
+LON0, LON1 = -125.0, 145.0
 PX = W / (LON1 - LON0)
 LAT_TOP = 74.0
 def xy(lon, lat):
@@ -48,7 +48,7 @@ vig = 1 - 0.55 * (((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2)
 ocean = np.dstack([8 + 6 * vig, 14 + 14 * vig, 30 + 30 * vig])
 img = ocean.copy()
 grid = np.zeros((H, W), np.float32)
-for lon in range(-80, 140, 15):
+for lon in range(-120, 150, 15):
     x = int(round(xy(lon, 0)[0])); grid[:, max(x, 0):x + 1] = 1
 for lat in range(-45, 75, 15):
     y = int(round(xy(0, lat)[1])); grid[max(y, 0):y + 1, :] = 1

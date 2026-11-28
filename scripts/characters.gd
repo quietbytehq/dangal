@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar", "finn", "laxman"]
+const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar", "finn", "laxman", "buck"]
 
 const DATA := {
 	"rustam": {
@@ -437,6 +437,60 @@ const DATA := {
 			"kick_special": {"damage": 45, "active": Vector2(0.20, 0.85), "time": 1.1, "hits": 3,
 				"move": 380.0, "box": Rect2(0.0, -0.90, 0.85, 0.60), "hitstun": 0.45,
 				"push": 240.0, "sfx": "kick", "vfx": "fire_burst"},
+		},
+	},
+	"buck": {
+		"name": "BUCK McCRAW",
+		"from": "Amarillo, Texas",
+		"country": "USA",
+		"flag": "us",
+		"style": "Rodeo brawler",
+		"age": 44,
+		"height": "1.93 m",
+		"stats": {"POWER": 5, "SPEED": 2, "RANGE": 5, "DEFENSE": 4},
+		"fact": "Rode bulls in every rodeo from Amarillo to Abilene before he got thrown out of all of them for starting fights. Never goes anywhere without his lasso and a toothpick.",
+		"sprites": "res://assets/buck",
+		"json": "buck_sprites.json",
+		"voice": "buck",
+		"health": 1100,
+		"walk_speed": 205.0,
+		"push_width": 0.29,
+		# Lasso Snare: ropes the opponent and yanks them in
+		"special": "snare",
+		"special_name": "LASSO SNARE",
+		"special_time": 1.2,
+		"special_release": 0.35,
+		"kick_special_name": "BULL RUSH",
+		"ultra": "stampede",
+		"ultra_name": "GOLDEN STAMPEDE",
+		"ultra_time": 3.6,
+		"ultra_release": 0.55,
+		"ultra_damage": 335,
+		"callout_text": "Hold your horses, partner. Where I come from, we rope steers bigger'n you before breakfast.",
+		"fight_start_text": "Yeehaw!",
+		"tease_text": "Well now, that was quicker'n a jackrabbit on a hot skillet. Y'all come back now, ya hear?",
+		"groan_text": "Well, butter my biscuit... you whupped me fair and square, partner.",
+		"attacks": {
+			"jab": {"damage": 60, "active": Vector2(0.20, 0.60), "time": 0.55, "hits": 2,
+				"box": Rect2(0.10, -0.82, 0.60, 0.18), "hitstun": 0.34, "push": 150.0, "sfx": "punch"},
+			"roundhouse": {"damage": 115, "active": Vector2(0.30, 0.62), "time": 0.9,
+				"box": Rect2(0.10, -0.85, 0.74, 0.34), "hitstun": 0.5, "push": 300.0, "sfx": "kick"},
+			"crouch_punch": {"damage": 55, "active": Vector2(0.25, 0.60), "time": 0.55,
+				"box": Rect2(0.10, -0.55, 0.68, 0.22), "hitstun": 0.32, "push": 140.0, "sfx": "punch"},
+			"crouch_kick": {"damage": 88, "active": Vector2(0.35, 0.72), "time": 0.8, "low": true,
+				"box": Rect2(0.05, -0.30, 0.82, 0.30), "hitstun": 0.42, "push": 200.0, "sfx": "kick"},
+			"jump_punch": {"damage": 82, "active": Vector2(0.30, 0.60), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.82, 0.58, 0.32), "hitstun": 0.42, "push": 170.0, "sfx": "punch"},
+			"jump_kick": {"damage": 95, "active": Vector2(0.30, 0.70), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.75, 0.74, 0.34), "hitstun": 0.45, "push": 230.0, "sfx": "kick"},
+			# Bull Rush: head-down shoulder charge across the floor
+			"kick_special": {"damage": 120, "active": Vector2(0.18, 0.75), "time": 1.1,
+				"move": 640.0, "box": Rect2(0.0, -0.85, 0.80, 0.70), "hitstun": 0.55,
+				"push": 380.0, "sfx": "kick", "vfx": "rock_burst", "quake": 10.0},
+			# Lasso Snare (the special): a long rope throw; negative push drags the opponent in
+			"special": {"damage": 95, "active": Vector2(0.35, 0.70), "time": 1.2,
+				"move": 0.0, "box": Rect2(0.15, -0.85, 1.70, 0.40), "hitstun": 0.7,
+				"push": -460.0, "sfx": "kick", "vfx": "fire_burst"},
 		},
 	},
 }

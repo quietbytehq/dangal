@@ -1,0 +1,138 @@
+{
+  "frame_width": 640,
+  "frame_height": 515,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 326,
+    "y": 502
+  },
+  "body_height": 330,
+  "animations": {
+    "idle": {
+      "file": "buck_idle.png",
+      "frames": 92,
+      "columns": 8,
+      "rows": 12,
+      "loop": true
+    },
+    "walk": {
+      "file": "buck_walk.png",
+      "frames": 88,
+      "columns": 8,
+      "rows": 11,
+      "loop": true
+    },
+    "jab": {
+      "file": "buck_jab.png",
+      "frames": 23,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "buck_roundhouse.png",
+      "frames": 41,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "buck_crouch_punch.png",
+      "frames": 23,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "buck_crouch_kick.png",
+      "frames": 24,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump": {
+      "file": "buck_jump.png",
+      "frames": 16,
+      "columns": 8,
+      "rows": 2,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "buck_jump_punch.png",
+      "frames": 17,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "buck_jump_kick.png",
+      "frames": 16,
+      "columns": 8,
+      "rows": 2,
+      "loop": false
+    },
+    "special": {
+      "file": "buck_special.png",
+      "frames": 54,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "buck_kick_special.png",
+      "frames": 44,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "ultra": {
+      "file": "buck_ultra.png",
+      "frames": 56,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "block": {
+      "file": "buck_block.png",
+      "frames": 14,
+      "columns": 8,
+      "rows": 2,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "buck_crouch_block.png",
+      "frames": 47,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "hit": {
+      "file": "buck_hit.png",
+      "frames": 37,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "buck_knockdown.png",
+      "frames": 25,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "victory": {
+      "file": "buck_victory.png",
+      "frames": 79,
+      "columns": 8,
+      "rows": 10,
+      "loop": false
+    },
+    "intro": {
+      "file": "buck_intro.png",
+      "frames": 95,
+      "columns": 8,
+      "rows": 12,
+      "loop": false
+    }
+  }
+}
