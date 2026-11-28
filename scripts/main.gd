@@ -1210,7 +1210,6 @@ const TILE := 104.0
 
 func _tile_rect(i: int) -> Rect2:
 	var n := Characters.ROSTER.size()
-	var rows := int(ceil(float(n) / SELECT_COLS))
 	var gap := 8.0
 	var w := SELECT_COLS * TILE + (SELECT_COLS - 1) * gap
 	var x0 := 640.0 - w / 2.0
@@ -1280,86 +1279,6 @@ func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
 	hud.draw_multiline_string(_ui_font, Vector2(tx, y + 22), "%s · %s · %s" % [def["special_name"],
 			def.get("kick_special_name", ""), def.get("ultra_name", "")], HORIZONTAL_ALIGNMENT_LEFT, tw, 12, 2,
 			Color(0.4, 0.9, 1.0))
-
-
-func _tile_rect(i: int) -> Rect2:
-	var n := Characters.ROSTER.size()
-	var rows := int(ceil(float(n) / SELECT_COLS))
-	var gap := 8.0
-	var w := SELECT_COLS * TILE + (SELECT_COLS - 1) * gap
-	var x0 := 640.0 - w / 2.0
-	var y0 := 482.0
-	return Rect2(x0 + (i % SELECT_COLS) * (TILE + gap), y0 + (i / SELECT_COLS) * (TILE + gap), TILE, TILE)
-
-
-## Square crop of a fighter's close-up around his face.
-func _face_tile(id: String, r: Rect2, tint := Color.WHITE) -> void:
-	var tex: Texture2D = _portraits.get(id, {}).get("callout")
-	if tex == null:
-		_portrait(id, "callout", r, false, tint)
-		return
-	var ts := tex.get_size()
-	var side: float = ts.y * 0.78
-	var f: Vector2 = FACE_FOCUS.get(id, Vector2(0.5, 0.4))
-	var c := Vector2(ts.x * f.x, ts.y * f.y)
-	var src := Rect2(c - Vector2(side, side) * 0.5, Vector2(side, side))
-	src.position.x = clamp(src.position.x, 0.0, ts.x - side)
-	src.position.y = clamp(src.position.y, 0.0, ts.y - side)
-	hud.draw_texture_rect_region(tex, r, src, tint)
-
-
-func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
-	var def := Characters.get_def(id)
-	var col := Color(0.3, 0.6, 1.0) if p == 1 else Color(1.0, 0.35, 0.35)
-	var panel := Rect2(x, 120, 390, 560)
-	hud.draw_rect(panel, Color(0.06, 0.03, 0.12, 0.88))
-	hud.draw_rect(panel, Color(col.r, col.g, col.b, 0.8), false, 3.0)
-	# fighter, full body, standing in the panel
-	var frames: SpriteFrames = _sprite_cache[id]["frames"]
-	var tex := frames.get_frame_texture("idle", 0)
-	if tex:
-		# crop the frame to the body: the sprite cells have lots of empty space
-		var anchor: Vector2 = _sprite_cache[id]["anchor"]
-		var bh: float = _sprite_cache[id]["body_height"]
-		var src := Rect2(anchor.x - bh * 0.6, anchor.y - bh * 1.08, bh * 1.2, bh * 1.12)
-		var sc: float = 235.0 / src.size.y
-		var size := src.size * sc
-		var pos := Vector2(x + (390 - size.x) / 2.0, 140)
-		if p == 2:
-			hud.draw_set_transform(Vector2(pos.x + size.x, pos.y), 0.0, Vector2(-1, 1))
-			hud.draw_texture_rect_region(tex, Rect2(Vector2.ZERO, size), src)
-			hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		else:
-			hud.draw_texture_rect_region(tex, Rect2(pos, size), src)
-	var tag := ("%dP" % p) + (" CPU" if p == 2 and p2_cpu else "") + ("   READY" if _locked_in[p] else "")
-	hud.draw_string(font, Vector2(x + 14, 148), tag, HORIZONTAL_ALIGNMENT_LEFT, 360, 18, col)
-	var y := 392.0
-	hud.draw_string(font, Vector2(x, y), def["name"], HORIZONTAL_ALIGNMENT_CENTER, 390, 34, Color.WHITE)
-	y += 26
-	var origin := "%s  ·  %s" % [def.get("country", ""), str(def["from"]).to_upper()]
-	hud.draw_string(font, Vector2(x + 18, y), origin, HORIZONTAL_ALIGNMENT_CENTER, 390, 16, Color(1, 0.85, 0.4))
-	var ow := font.get_string_size(origin, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
-	_flag(id, Rect2(x + 18 + 195 - ow * 0.5 - 34, y - 15, 26, 19.5))
-	y += 24
-	hud.draw_string(font, Vector2(x, y), "%s   ·   Age %s   ·   %s" % [def.get("style", ""), def.get("age", "?"),
-			def.get("height", "")], HORIZONTAL_ALIGNMENT_CENTER, 390, 15, Color(0.85, 0.85, 0.95))
-	y += 14
-	var stats: Dictionary = def.get("stats", {})
-	for k in stats:
-		y += 22
-		hud.draw_string(font, Vector2(x + 24, y), str(k), HORIZONTAL_ALIGNMENT_LEFT, 100, 14, Color(0.8, 0.8, 0.9))
-		for b in 5:
-			var on: bool = b < int(stats[k])
-			hud.draw_rect(Rect2(x + 120 + b * 48, y - 12, 42, 12),
-					Color(col.r, col.g, col.b, 0.95) if on else Color(1, 1, 1, 0.12))
-	y += 30
-	hud.draw_string(font, Vector2(x + 24, y), "MOVES", HORIZONTAL_ALIGNMENT_LEFT, 100, 14, Color(0.8, 0.8, 0.9))
-	hud.draw_multiline_string(font, Vector2(x + 120, y), "%s  ·  %s  ·  %s" % [def["special_name"],
-			def.get("kick_special_name", ""), def.get("ultra_name", "")], HORIZONTAL_ALIGNMENT_LEFT, 250, 13, 2,
-			Color(0.4, 0.9, 1.0))
-	y += 40
-	hud.draw_multiline_string(font, Vector2(x + 24, y), str(def.get("fact", "")), HORIZONTAL_ALIGNMENT_LEFT,
-			342, 14, 3, Color(1, 1, 1, 0.75))
 
 
 func _draw_select(font: Font) -> void:
