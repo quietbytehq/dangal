@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar"]
+const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar", "finn"]
 
 const DATA := {
 	"rustam": {
@@ -384,7 +384,7 @@ const DATA := {
 				"move": 260.0, "box": Rect2(0.0, -0.95, 0.85, 0.75), "hitstun": 0.5,
 				"push": 260.0, "sfx": "kick", "vfx": "fire_burst", "quake": 10.0},
 			# Shamrock Straight (the special): dashing straight left
-			"special": {"damage": 115, "active": Vector2(0.20, 0.55), "time": 1.0,
+			"special": {"damage": 115, "active": Vector2(0.40, 0.72), "time": 1.0,
 				"move": 760.0, "box": Rect2(0.05, -0.80, 0.70, 0.35), "hitstun": 0.55,
 				"push": 360.0, "sfx": "punch", "vfx": "fire_burst"},
 		},

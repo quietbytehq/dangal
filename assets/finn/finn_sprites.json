@@ -1,0 +1,138 @@
+{
+  "frame_width": 640,
+  "frame_height": 515,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 318,
+    "y": 507
+  },
+  "body_height": 335,
+  "animations": {
+    "idle": {
+      "file": "finn_idle.png",
+      "frames": 28,
+      "columns": 8,
+      "rows": 4,
+      "loop": true
+    },
+    "walk": {
+      "file": "finn_walk.png",
+      "frames": 88,
+      "columns": 8,
+      "rows": 11,
+      "loop": true
+    },
+    "jab": {
+      "file": "finn_jab.png",
+      "frames": 26,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "finn_roundhouse.png",
+      "frames": 24,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "finn_crouch_punch.png",
+      "frames": 25,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "finn_crouch_kick.png",
+      "frames": 21,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump": {
+      "file": "finn_jump.png",
+      "frames": 18,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "finn_jump_punch.png",
+      "frames": 22,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "finn_jump_kick.png",
+      "frames": 28,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "special": {
+      "file": "finn_special.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "finn_kick_special.png",
+      "frames": 23,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "ultra": {
+      "file": "finn_ultra.png",
+      "frames": 56,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "block": {
+      "file": "finn_block.png",
+      "frames": 12,
+      "columns": 8,
+      "rows": 2,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "finn_crouch_block.png",
+      "frames": 27,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "hit": {
+      "file": "finn_hit.png",
+      "frames": 44,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "finn_knockdown.png",
+      "frames": 33,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "victory": {
+      "file": "finn_victory.png",
+      "frames": 45,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "intro": {
+      "file": "finn_intro.png",
+      "frames": 93,
+      "columns": 8,
+      "rows": 12,
+      "loop": false
+    }
+  }
+}
