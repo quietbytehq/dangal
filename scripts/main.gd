@@ -1514,9 +1514,9 @@ func _draw_champion(font: Font) -> void:
 	_draw_map_dots(MAP_FULL, "arcade")
 	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0, 0, 0, 0.35))
 	var me := _id(1)
-	_portrait(me, "win", Rect2(0, 120, 760, 600), _mirror_for(me, "win", 1))
-	_neon(font, Vector2(300, 140), "WORLD CHAMPION", 56, Color(1, 0.85, 0.2))
-	_outlined(font, Vector2(300, 190), "%s beat every fighter in the Dangal" % Characters.get_def(me)["name"], 22,
+	_portrait(me, "win", Rect2(0, 160, 620, 560), _mirror_for(me, "win", 1))
+	_neon(font, Vector2(330, 120), "WORLD CHAMPION", 56, Color(1, 0.85, 0.2))
+	_outlined(font, Vector2(330, 170), "%s beat every fighter in the Dangal" % Characters.get_def(me)["name"], 22,
 			Color.WHITE)
 	if phase_time > 2.0:
 		hud.draw_string(font, Vector2(0, 712), "Press any button", HORIZONTAL_ALIGNMENT_CENTER, 1280, 16,
