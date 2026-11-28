@@ -29,9 +29,15 @@ const STAGES := [
 	{"name": "SHIRAZ PINK MOSQUE", "home": "rustam", "image": "res://assets/stage/iran_mosque.png", "music": "stage_iran",
 		"video": "res://assets/stage/iran_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_iran.ogg",
 		"props": [["copper_pot", 115.0], ["basket", 245.0], ["matka", 1165.0], ["copper_pot", 1045.0]]},
-	{"name": "KABUL KITE ROOFTOP", "home": "samandar", "image": "res://assets/stage/kabul_rooftop.png", "music": "stage_kabul",
+	{"name": "KABUL KITE ROOFTOP", "image": "res://assets/stage/kabul_rooftop.png", "music": "stage_kabul",
 		"video": "res://assets/stage/kabul_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_kabul.ogg",
 		"props": [["matka", 112.0], ["basket", 242.0], ["crate", 1162.0], ["copper_pot", 1042.0]]},
+	{"name": "OLD KABUL AIRFIELD", "home": "samandar", "image": "res://assets/stage/afghan_airfield.png", "music": "stage_kabul",
+		"video": "res://assets/stage/afghan_airfield_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_kabul.ogg",
+		"props": [["drum", 110.0], ["crate", 240.0], ["drum", 1165.0], ["crate", 1045.0]]},
+	{"name": "WILD ATLANTIC COAST", "home": "finn", "image": "res://assets/stage/irish_beach.png", "music": "stage_ireland",
+		"video": "res://assets/stage/irish_beach_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_beach.ogg",
+		"props": [["basket", 115.0], ["crate", 245.0], ["firewood", 1160.0], ["basket", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE", "VERSUS", "OPTIONS", "HOW TO PLAY", "QUIT"]
@@ -121,6 +127,14 @@ var _hitstop_token := 0
 
 # character select state
 var _cursor := {1: 0, 2: 1}
+## Arcade: player 1 travels the world and fights every other fighter in turn
+var _arcade := false
+var _ladder: Array[String] = []
+var _ladder_i := 0
+var _beaten: Array[String] = []
+var _map_from := ""
+var _map_to := ""
+var _map_tex: Texture2D
 var _locked_in := {1: false, 2: false}
 var _cpu_pick_at := -1.0
 
@@ -162,6 +176,7 @@ func _ready() -> void:
 
 	_ui_font = load("res://assets/fonts/rajdhani-latin-600-normal.woff2") if ResourceLoader.exists("res://assets/fonts/rajdhani-latin-600-normal.woff2") else ThemeDB.fallback_font
 	_ui_bold = load("res://assets/fonts/rajdhani-latin-700-normal.woff2") if ResourceLoader.exists("res://assets/fonts/rajdhani-latin-700-normal.woff2") else _ui_font
+	_map_tex = load("res://assets/map/world.png") if ResourceLoader.exists("res://assets/map/world.png") else null
 	_logo_tex = load("res://assets/title/logo.png") if ResourceLoader.exists("res://assets/title/logo.png") else null
 	# newest fighter first, so a new character greets the player
 	var ids: Array = Characters.ROSTER.duplicate()
@@ -278,6 +293,19 @@ func _shots() -> void:
 	p2_cpu = true
 	await wait.call(0.5)
 	await snap.call("select")
+	# arcade world map, mid-flight, with one fighter already beaten
+	_arcade = true
+	_ladder.assign(Characters.ROSTER.filter(func(x): return x != _id(1)))
+	_ladder_i = 2
+	_beaten.assign([_ladder[0], _ladder[1]])
+	_enter_map(_ladder[1])
+	await wait.call(1.3)
+	await snap.call("arcade_map")
+	phase = "champion"
+	phase_time = 2.5
+	await wait.call(0.3)
+	await snap.call("arcade_champion")
+	_arcade = false
 	for st in STAGES.size():
 		_clear_match()
 		_set_stage(st)
@@ -428,10 +456,12 @@ func _process_title() -> void:
 		match TITLE_ITEMS[_menu_idx]:
 			"ARCADE":
 				p2_cpu = true
+				_arcade = true
 				Sound.sfx("punch")
 				_enter_select()
 			"VERSUS":
 				p2_cpu = false
+				_arcade = false
 				Sound.sfx("punch")
 				_enter_select()
 			"OPTIONS":
@@ -532,6 +562,14 @@ func _select_input(p: int) -> void:
 func _process_select() -> void:
 	_select_input(1)
 	if phase != "select":
+		return
+	if _arcade:
+		if _locked_in[1]:
+			if not _cues.has("go"):
+				_cues["go"] = phase_time
+			elif phase_time - float(_cues["go"]) > 1.0:
+				_cues.clear()
+				_start_arcade()
 		return
 	if p2_cpu:
 		if _locked_in[1] and _cpu_pick_at < 0.0:
@@ -682,6 +720,11 @@ func _process(delta: float) -> void:
 			_process_stage()
 		"versus":
 			_process_versus()
+		"map":
+			_process_map()
+		"champion":
+			if phase_time > 2.0 and (_pressed("start") or _pressed("p1_punch") or _pressed("p1_kick")):
+				_enter_title()
 		"intro":
 			if round_num == 1 and _cue("entrance", 0.0):
 				# Jameel takes off his papakha before the first round
@@ -735,7 +778,9 @@ func _process(delta: float) -> void:
 					round_num += 1
 					_start_round()
 		"victory":
-			if phase_time > 1.5:
+			if phase_time > 1.5 and _arcade:
+				_process_arcade_victory()
+			elif phase_time > 1.5:
 				if _pressed("start") or _pressed("p1_punch"):
 					wins = {1: 0, 2: 0}
 					round_num = 1
@@ -980,6 +1025,12 @@ func _draw_hud() -> void:
 		"select":
 			_draw_select(font)
 			return
+		"map":
+			_draw_map_screen(font)
+			return
+		"champion":
+			_draw_champion(font)
+			return
 		"stage":
 			_draw_stage_select(font)
 			return
@@ -1152,19 +1203,92 @@ func _draw_menu(t: float) -> void:
 
 
 ## Where each fighter's face sits in his call-out close-up (fractions of the image), for square tiles.
-const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32), "samandar": Vector2(0.55, 0.3)}
-const SELECT_COLS := 2
-const TILE := 150.0
+const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32), "samandar": Vector2(0.55, 0.3), "finn": Vector2(0.58, 0.32)}
+const SELECT_COLS := 4
+const TILE := 104.0
 
 
 func _tile_rect(i: int) -> Rect2:
 	var n := Characters.ROSTER.size()
 	var rows := int(ceil(float(n) / SELECT_COLS))
-	var gap := 14.0
+	var gap := 8.0
 	var w := SELECT_COLS * TILE + (SELECT_COLS - 1) * gap
-	var h := rows * TILE + (rows - 1) * gap
 	var x0 := 640.0 - w / 2.0
-	var y0 := 400.0 - h / 2.0
+	var y0 := 482.0
+	return Rect2(x0 + (i % SELECT_COLS) * (TILE + gap), y0 + (i / SELECT_COLS) * (TILE + gap), TILE, TILE)
+
+
+## Square crop of a fighter's close-up around his face.
+func _face_tile(id: String, r: Rect2, tint := Color.WHITE) -> void:
+	var tex: Texture2D = _portraits.get(id, {}).get("callout")
+	if tex == null:
+		_portrait(id, "callout", r, false, tint)
+		return
+	var ts := tex.get_size()
+	var side: float = ts.y * 0.78
+	var f: Vector2 = FACE_FOCUS.get(id, Vector2(0.5, 0.4))
+	var c := Vector2(ts.x * f.x, ts.y * f.y)
+	var src := Rect2(c - Vector2(side, side) * 0.5, Vector2(side, side))
+	src.position.x = clamp(src.position.x, 0.0, ts.x - side)
+	src.position.y = clamp(src.position.y, 0.0, ts.y - side)
+	hud.draw_texture_rect_region(tex, r, src, tint)
+
+
+## Compact fighter card in a bottom corner of the select screen.
+func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
+	var def := Characters.get_def(id)
+	var col := Color(0.3, 0.6, 1.0) if p == 1 else Color(1.0, 0.35, 0.35)
+	var panel := Rect2(x, 470, 380, 236)
+	hud.draw_rect(panel, Color(0.04, 0.03, 0.1, 0.9))
+	hud.draw_rect(panel, Color(col.r, col.g, col.b, 0.85), false, 3.0)
+	# fighter, full body, on the outer side of the card
+	var frames: SpriteFrames = _sprite_cache[id]["frames"]
+	var tex := frames.get_frame_texture("idle", 0)
+	var body_x := x + 8.0 if p == 1 else x + 380.0 - 138.0
+	if tex:
+		var anchor: Vector2 = _sprite_cache[id]["anchor"]
+		var bh: float = _sprite_cache[id]["body_height"]
+		var src := Rect2(anchor.x - bh * 0.6, anchor.y - bh * 1.08, bh * 1.2, bh * 1.12)
+		var sc: float = 200.0 / src.size.y
+		var size := src.size * sc
+		var pos := Vector2(body_x + (130 - size.x) / 2.0, 496)
+		if p == 2:
+			hud.draw_set_transform(Vector2(pos.x + size.x, pos.y), 0.0, Vector2(-1, 1))
+			hud.draw_texture_rect_region(tex, Rect2(Vector2.ZERO, size), src)
+			hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		else:
+			hud.draw_texture_rect_region(tex, Rect2(pos, size), src)
+	var tx := x + 146.0 if p == 1 else x + 12.0
+	var tw := 222.0
+	var tag := ("%dP" % p) + (" CPU" if p == 2 and p2_cpu else "") + ("   READY" if _locked_in[p] else "")
+	hud.draw_string(_ui_bold, Vector2(tx, 494), tag, HORIZONTAL_ALIGNMENT_LEFT, tw, 16, col)
+	hud.draw_string(_ui_bold, Vector2(tx, 524), def["name"], HORIZONTAL_ALIGNMENT_LEFT, tw, 26, Color.WHITE)
+	_flag(id, Rect2(tx, 534, 24, 18))
+	hud.draw_string(_ui_font, Vector2(tx + 32, 549), "%s · %s" % [str(def["from"]).to_upper(), def.get("country", "")],
+			HORIZONTAL_ALIGNMENT_LEFT, tw - 32, 14, Color(1, 0.85, 0.4))
+	hud.draw_string(_ui_font, Vector2(tx, 570), "%s · Age %s · %s" % [def.get("style", ""), def.get("age", "?"),
+			def.get("height", "")], HORIZONTAL_ALIGNMENT_LEFT, tw, 13, Color(0.85, 0.85, 0.95))
+	var y := 580.0
+	var stats: Dictionary = def.get("stats", {})
+	for k in stats:
+		y += 17
+		hud.draw_string(_ui_font, Vector2(tx, y), str(k), HORIZONTAL_ALIGNMENT_LEFT, 80, 12, Color(0.8, 0.8, 0.9))
+		for bb in 5:
+			var on: bool = bb < int(stats[k])
+			hud.draw_rect(Rect2(tx + 74 + bb * 29, y - 10, 25, 9),
+					Color(col.r, col.g, col.b, 0.95) if on else Color(1, 1, 1, 0.12))
+	hud.draw_multiline_string(_ui_font, Vector2(tx, y + 22), "%s · %s · %s" % [def["special_name"],
+			def.get("kick_special_name", ""), def.get("ultra_name", "")], HORIZONTAL_ALIGNMENT_LEFT, tw, 12, 2,
+			Color(0.4, 0.9, 1.0))
+
+
+func _tile_rect(i: int) -> Rect2:
+	var n := Characters.ROSTER.size()
+	var rows := int(ceil(float(n) / SELECT_COLS))
+	var gap := 8.0
+	var w := SELECT_COLS * TILE + (SELECT_COLS - 1) * gap
+	var x0 := 640.0 - w / 2.0
+	var y0 := 482.0
 	return Rect2(x0 + (i % SELECT_COLS) * (TILE + gap), y0 + (i / SELECT_COLS) * (TILE + gap), TILE, TILE)
 
 
@@ -1239,32 +1363,245 @@ func _draw_facts(font: Font, id: String, x: float, p: int) -> void:
 
 
 func _draw_select(font: Font) -> void:
-	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.05, 0.03, 0.1, 0.78))
-	_neon(font, Vector2(0, 76), "CHOOSE YOUR FIGHTER", 50, Color(1, 0.3, 0.8))
-	_draw_facts(font, Characters.ROSTER[_cursor[1]], 20, 1)
-	_draw_facts(font, Characters.ROSTER[_cursor[2]], 870, 2)
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.02, 0.03, 0.08, 1.0))
+	_draw_map(MAP_SELECT)
+	_draw_map_dots(MAP_SELECT, "select")
+	_neon(font, Vector2(0, 52), "CHOOSE YOUR FIGHTER", 40, Color(1, 0.3, 0.8))
+	_draw_facts(font, Characters.ROSTER[_cursor[1]], 14, 1)
+	if not _arcade:
+		_draw_facts(font, Characters.ROSTER[_cursor[2]], 886, 2)
 	for i in Characters.ROSTER.size():
 		var id: String = Characters.ROSTER[i]
 		var r := _tile_rect(i)
-		hud.draw_rect(r.grow(3), Color(0, 0, 0, 0.8))
+		hud.draw_rect(r.grow(3), Color(0, 0, 0, 0.85))
 		_face_tile(id, r)
-		hud.draw_rect(Rect2(r.position.x, r.end.y - 24, r.size.x, 24), Color(0, 0, 0, 0.65))
-		hud.draw_string(font, Vector2(r.position.x, r.end.y - 6), Characters.get_def(id)["name"],
-				HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 15, Color.WHITE)
+		hud.draw_rect(Rect2(r.position.x, r.end.y - 20, r.size.x, 20), Color(0, 0, 0, 0.65))
+		hud.draw_string(_ui_bold, Vector2(r.position.x, r.end.y - 5), Characters.get_def(id)["name"],
+				HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 12, Color.WHITE)
 		for p in [1, 2]:
-			if _cursor[p] != i:
+			if _cursor[p] != i or (p == 2 and _arcade):
 				continue
 			var col := Color(0.3, 0.6, 1.0) if p == 1 else Color(1.0, 0.3, 0.3)
 			var pulse := 0.6 + 0.4 * sin(phase_time * 8.0)
-			var g := 4.0 if p == 1 else 9.0
+			var g := 3.0 if p == 1 else 7.0
 			hud.draw_rect(r.grow(g), Color(col.r, col.g, col.b, 1.0 if _locked_in[p] else pulse), false,
-					5.0 if _locked_in[p] else 3.0)
-			hud.draw_string(font, Vector2(r.position.x + (4 if p == 1 else r.size.x - 34), r.position.y + 18),
-					"%dP" % p, HORIZONTAL_ALIGNMENT_LEFT, 30, 15, col)
-	if _locked_in[1] and _locked_in[2]:
-		_neon(font, Vector2(0, 640), "VS", 56, Color(1, 0.85, 0.3))
-	_outlined(font, Vector2(0, 706), "Arrows choose    Punch / Enter: select    Kick: back    F2: toggle CPU",
-			16, Color(1, 1, 1, 0.7))
+					4.0 if _locked_in[p] else 3.0)
+			hud.draw_string(_ui_bold, Vector2(r.position.x + (4 if p == 1 else r.size.x - 28), r.position.y + 16),
+					"%dP" % p, HORIZONTAL_ALIGNMENT_LEFT, 30, 13, col)
+	if _arcade:
+		_outlined(font, Vector2(260, 560), "ARCADE", 30, Color(1, 0.85, 0.3))
+		_outlined(font, Vector2(260, 592), "Beat every fighter", 16, Color.WHITE)
+		_outlined(font, Vector2(260, 614), "around the world", 16, Color.WHITE)
+	elif _locked_in[1] and _locked_in[2]:
+		_neon(font, Vector2(0, 470), "VS", 36, Color(1, 0.85, 0.3))
+	_outlined(font, Vector2(0, 714), "Arrows choose    Punch / Enter: select    Kick: back" +
+			("" if _arcade else "    F2: toggle CPU"), 14, Color(1, 1, 1, 0.7))
+
+
+# ---------------------------------------------------------------- world map
+
+## Where each fighter's home is (longitude, latitude), for the world map.
+const GEO := {"rustam": Vector2(51.39, 35.69), "babasher": Vector2(74.65, 36.32), "tiago": Vector2(-43.2, -22.9),
+		"meilin": Vector2(104.07, 30.67), "jameel": Vector2(47.5, 42.98), "samandar": Vector2(69.17, 34.53),
+		"finn": Vector2(-9.6, 53.0)}
+## Which side of the dot the flag goes, so neighbours (Kabul, Hunza, Tehran) don't overlap.
+const GEO_LABEL := {"rustam": Vector2(-1, 1), "babasher": Vector2(1, -1), "tiago": Vector2(1, 0),
+		"meilin": Vector2(1, 0), "jameel": Vector2(-1, -1), "samandar": Vector2(0, 1), "finn": Vector2(-1, -1)}
+## world.png covers longitude -85..135 at 1280 px wide (equirectangular), latitude 74 at the top.
+const MAP_LON0 := -85.0
+const MAP_PX := 1280.0 / 220.0
+const MAP_LAT_TOP := 74.0
+const MAP_SRC := Rect2(0, 70, 1280, 535)        # the part of world.png that holds every fighter
+const MAP_SELECT := Rect2(173, 72, 934, 390)
+const MAP_FULL := Rect2(0, 92, 1280, 535)
+
+
+func _map_point(id: String, dst: Rect2) -> Vector2:
+	var g: Vector2 = GEO.get(id, Vector2.ZERO)
+	var px := Vector2((g.x - MAP_LON0) * MAP_PX, (MAP_LAT_TOP - g.y) * MAP_PX)
+	return dst.position + (px - MAP_SRC.position) * (dst.size.x / MAP_SRC.size.x)
+
+
+func _draw_map(dst: Rect2) -> void:
+	if _map_tex:
+		hud.draw_texture_rect_region(_map_tex, dst, MAP_SRC)
+	hud.draw_rect(dst, Color(0.3, 0.9, 1.0, 0.35), false, 2.0)
+
+
+## Glowing dots with flags. mode "select": every home is lit, the cursors' homes ring.
+## mode "arcade": beaten = gold, the next stop pulses red, the player's home is blue, the rest grey.
+func _draw_map_dots(dst: Rect2, mode: String) -> void:
+	var t := phase_time
+	for id in Characters.ROSTER:
+		if not GEO.has(id):
+			continue
+		var c := _map_point(id, dst)
+		var col := Color(0.3, 0.95, 1.0)
+		var lit := true
+		if mode == "arcade":
+			if id in _beaten:
+				col = Color(1.0, 0.82, 0.25)
+			elif id == _map_to:
+				col = Color(1.0, 0.3, 0.3)
+			elif id == _id(1):
+				col = Color(0.35, 0.65, 1.0)
+			else:
+				col = Color(0.5, 0.5, 0.55)
+				lit = false
+		if lit:
+			for k in 3:
+				hud.draw_circle(c, 9.0 + k * 5.0, Color(col.r, col.g, col.b, 0.12))
+		hud.draw_circle(c, 5.0, col)
+		hud.draw_circle(c, 2.0, Color(1, 1, 1, 0.9 if lit else 0.4))
+		var ring := false
+		if mode == "select":
+			ring = id == _id(1) or (id == _id(2) and not _arcade)
+		elif mode == "arcade":
+			ring = id == _map_to
+		if ring:
+			var rr := 10.0 + fmod(t * 22.0, 22.0)
+			hud.draw_arc(c, rr, 0, TAU, 32, Color(col.r, col.g, col.b, 1.0 - (rr - 10.0) / 22.0), 2.0)
+		if mode == "arcade" and id in _beaten:
+			hud.draw_polyline(PackedVector2Array([c + Vector2(-4, 0), c + Vector2(-1, 3), c + Vector2(5, -4)]),
+					Color(0.1, 0.05, 0.0), 2.0)
+		var side: Vector2 = GEO_LABEL.get(id, Vector2(1, 0))
+		var fr := Rect2(c + Vector2(10 if side.x >= 0 else -34, -8 + side.y * 16), Vector2(24, 18))
+		if side.x == 0:
+			fr.position.x = c.x - 12
+		_flag(id, fr, 1.0 if lit else 0.45)
+
+
+func _start_arcade() -> void:
+	var me := _id(1)
+	_ladder.clear()
+	for id in Characters.ROSTER:
+		if id != me:
+			_ladder.append(id)
+	_ladder.shuffle()
+	_ladder_i = 0
+	_beaten.clear()
+	_enter_map(me)
+
+
+## Fly from `from` to the next opponent on the ladder.
+func _enter_map(from: String) -> void:
+	_clear_match()
+	_map_from = from
+	_map_to = _ladder[_ladder_i]
+	phase = "map"
+	phase_time = 0.0
+	_cues.clear()
+	Sound.music_volume(-14.0)
+
+
+const MAP_FLIGHT := 2.6
+
+
+func _process_map() -> void:
+	if _cue("takeoff", 0.3):
+		Sound.sfx("spin_whoosh", -8.0, 0.0)
+	var skip := phase_time > 0.6 and (_pressed("start") or _pressed("p1_punch"))
+	if phase_time > MAP_FLIGHT + 1.6 or skip:
+		_cursor[2] = Characters.ROSTER.find(_map_to)
+		for i in STAGES.size():
+			if STAGES[i].get("home", "") == _map_to:
+				_set_stage(i)
+		phase = "versus"
+		phase_time = 0.0
+		_cues.clear()
+		Sound.music_volume(-18.0)
+	elif _pressed("p1_kick"):
+		_enter_title()
+
+
+func _flight_point(a: Vector2, b: Vector2, u: float) -> Vector2:
+	var mid := (a + b) * 0.5 - Vector2(0, a.distance_to(b) * 0.28 + 30.0)
+	return a.lerp(mid, u).lerp(mid.lerp(b, u), u)
+
+
+func _draw_plane(at: Vector2, dir: Vector2, col: Color) -> void:
+	var f := dir.normalized()
+	var s := Vector2(-f.y, f.x)
+	var pts := PackedVector2Array([at + f * 16, at + f * 4 + s * 3, at + f * 2 + s * 15, at - f * 3 + s * 15,
+			at - f * 4 + s * 3, at - f * 11 + s * 2, at - f * 13 + s * 7, at - f * 16 + s * 7, at - f * 14,
+			at - f * 16 - s * 7, at - f * 13 - s * 7, at - f * 11 - s * 2, at - f * 4 - s * 3,
+			at - f * 3 - s * 15, at + f * 2 - s * 15, at + f * 4 - s * 3])
+	var shadow := PackedVector2Array()
+	for q in pts:
+		shadow.append(q + Vector2(5, 7))
+	hud.draw_colored_polygon(shadow, Color(0, 0, 0, 0.35))
+	hud.draw_colored_polygon(pts, col)
+
+
+func _draw_map_screen(font: Font) -> void:
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.02, 0.03, 0.08, 1.0))
+	_draw_map(MAP_FULL)
+	_draw_map_dots(MAP_FULL, "arcade")
+	var a := _map_point(_map_from, MAP_FULL)
+	var b := _map_point(_map_to, MAP_FULL)
+	var u := clampf(phase_time / MAP_FLIGHT, 0.0, 1.0)
+	var e := u * u * (3.0 - 2.0 * u)
+	# dashed trail behind the plane
+	var steps := 40
+	for k in steps:
+		var u0 := float(k) / steps
+		if u0 > e:
+			break
+		if k % 2 == 0:
+			hud.draw_line(_flight_point(a, b, u0), _flight_point(a, b, minf(u0 + 1.0 / steps, e)),
+					Color(1, 1, 1, 0.8), 2.0)
+	var p := _flight_point(a, b, e)
+	var dir := _flight_point(a, b, minf(e + 0.02, 1.0)) - _flight_point(a, b, maxf(e - 0.02, 0.0))
+	if dir.length() < 0.01:
+		dir = b - a
+	_draw_plane(p, dir, Color(0.95, 0.95, 1.0))
+	var def := Characters.get_def(_map_to)
+	hud.draw_rect(Rect2(0, 0, 1280, 90), Color(0, 0, 0, 0.6))
+	_neon(font, Vector2(0, 50), "STAGE %d / %d" % [_ladder_i + 1, _ladder.size()], 34, Color(1, 0.85, 0.3))
+	hud.draw_string(_ui_font, Vector2(0, 78), "%d beaten" % _beaten.size(), HORIZONTAL_ALIGNMENT_CENTER, 1280, 16,
+			Color(1, 1, 1, 0.7))
+	hud.draw_rect(Rect2(0, 630, 1280, 90), Color(0, 0, 0, 0.6))
+	_flag(_map_to, Rect2(420, 652, 48, 36))
+	hud.draw_string(_ui_bold, Vector2(484, 676), "NEXT:  %s" % def["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Color.WHITE)
+	hud.draw_string(_ui_font, Vector2(484, 702), "%s, %s" % [def["from"], def.get("country", "")],
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1, 0.85, 0.4))
+	_portrait(_map_to, "callout", Rect2(1020, 600, 220, 124), _mirror_for(_map_to, "callout", -1))
+
+
+func _process_arcade_victory() -> void:
+	var won := _champ.player == 1
+	if _pressed("p1_kick"):
+		_arcade = false
+		_enter_title()
+	elif _pressed("start") or _pressed("p1_punch"):
+		if not won:
+			# try the same opponent again
+			_enter_map(_map_from)
+			return
+		_beaten.append(_map_to)
+		_ladder_i += 1
+		if _ladder_i >= _ladder.size():
+			_clear_match()
+			phase = "champion"
+			phase_time = 0.0
+			Sound.announce("you_win")
+		else:
+			_enter_map(_map_to)
+
+
+func _draw_champion(font: Font) -> void:
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0.02, 0.03, 0.08, 1.0))
+	_draw_map(MAP_FULL)
+	_draw_map_dots(MAP_FULL, "arcade")
+	hud.draw_rect(Rect2(0, 0, 1280, 720), Color(0, 0, 0, 0.35))
+	var me := _id(1)
+	_portrait(me, "win", Rect2(0, 120, 760, 600), _mirror_for(me, "win", 1))
+	_neon(font, Vector2(300, 140), "WORLD CHAMPION", 56, Color(1, 0.85, 0.2))
+	_outlined(font, Vector2(300, 190), "%s beat every fighter in the Dangal" % Characters.get_def(me)["name"], 22,
+			Color.WHITE)
+	if phase_time > 2.0:
+		hud.draw_string(font, Vector2(0, 712), "Press any button", HORIZONTAL_ALIGNMENT_CENTER, 1280, 16,
+				Color(1, 1, 1, 0.7))
 
 
 func _draw_stage_select(font: Font) -> void:
@@ -1312,7 +1649,8 @@ const PORTRAIT_FACING := {"rustam_callout": -1, "babasher_callout": -1,
 		"tiago_callout": -1, "tiago_win": 1, "tiago_beaten": -1,
 		"meilin_callout": 1, "meilin_win": 1, "meilin_beaten": -1,
 		"jameel_callout": 1, "jameel_win": 1, "jameel_beaten": -1,
-		"samandar_callout": -1, "samandar_win": 1, "samandar_beaten": -1}
+		"samandar_callout": -1, "samandar_win": 1, "samandar_beaten": -1,
+		"finn_callout": 1, "finn_win": 1, "finn_beaten": 1}
 
 
 ## True if the close-up must be mirrored so it faces `want` (-1 left, 1 right).
@@ -1456,8 +1794,11 @@ func _draw_victory(font: Font) -> void:
 		_speech(font, Vector2(small.position.x + 10, small.end.y + 40), loser.def["groan_text"],
 				360, Vector2(small.get_center().x, small.end.y - 20), clamp((phase_time - 3.4) / 0.12, 0.0, 1.0))
 	if phase_time > 1.5:
-		hud.draw_string(font, Vector2(0, 712), "Enter / Start: rematch      Kick: character select",
-				HORIZONTAL_ALIGNMENT_CENTER, 1280, 16, Color(1, 1, 1, 0.7))
+		var hint := "Enter / Start: rematch      Kick: character select"
+		if _arcade:
+			hint = ("Punch / Enter: next fight      Kick: quit" if _champ.player == 1
+					else "Punch / Enter: try again      Kick: quit")
+		hud.draw_string(font, Vector2(0, 712), hint, HORIZONTAL_ALIGNMENT_CENTER, 1280, 16, Color(1, 1, 1, 0.7))
 
 
 func _draw_ultra_cutin(font: Font) -> void:

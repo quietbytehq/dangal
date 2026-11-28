@@ -31,7 +31,7 @@ func _ready() -> void:
 	z_index = 6
 	var f := owner_fighter
 	_dir = f.facing
-	if kind in ["beam", "dragon"]:
+	if kind in ["beam", "dragon", "banshee"]:
 		_x0 = f.position.x + _dir * f.H * 0.45
 		_y = f.position.y - f.H * 0.62
 		Sound.sfx("beam_blast", 2.0, 0.0)
@@ -43,6 +43,8 @@ func _ready() -> void:
 			_beam.scale = Vector2(length / w * _dir, 1.25)
 			if kind == "dragon":
 				_beam.modulate = Color(1.8, 1.3, 0.35)
+			elif kind == "banshee":
+				_beam.modulate = Color(0.55, 1.9, 0.75)
 		Vfx.spawn(self, "fire_burst", Vector2(_x0, _y), 0.9)
 	elif kind in ["rush", "lion"]:
 		Sound.sfx("spin_whoosh", 2.0, 0.0)
@@ -66,7 +68,7 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 	var o := f.opponent
-	if kind in ["beam", "dragon"]:
+	if kind in ["beam", "dragon", "banshee"]:
 		var r := _beam_rect()
 		if not _hit and t > 0.06 and o and r.intersects(o.get_hurtbox()):
 			_hit = true
@@ -133,12 +135,12 @@ func _rush(delta: float, f: Fighter, o: Fighter) -> void:
 
 func _draw() -> void:
 	# simple glow fallback, also adds punch under the video effects
-	if kind in ["beam", "dragon"]:
+	if kind in ["beam", "dragon", "banshee"]:
 		var r := _beam_rect()
 		var a := clampf((BEAM_TIME - t) / 0.3, 0.0, 1.0)
 		var core := Rect2(r.position.x, _y - r.size.y * 0.18, r.size.x, r.size.y * 0.36)
-		var glow := Color(1.0, 0.75, 0.25) if kind == "dragon" else Color(0.4, 0.7, 1.0)
-		var hot := Color(1.0, 0.95, 0.7) if kind == "dragon" else Color(0.85, 0.95, 1.0)
+		var glow := Color(1.0, 0.75, 0.25) if kind == "dragon" else (Color(0.3, 1.0, 0.5) if kind == "banshee" else Color(0.4, 0.7, 1.0))
+		var hot := Color(1.0, 0.95, 0.7) if kind == "dragon" else (Color(0.85, 1.0, 0.9) if kind == "banshee" else Color(0.85, 0.95, 1.0))
 		draw_rect(r, Color(glow, 0.18 * a))
 		draw_rect(core, Color(hot, 0.55 * a))
 	elif kind in ["rush", "lion"]:
