@@ -440,3 +440,7 @@ const DATA := {
 		},
 	},
 }
+
+
+static func get_def(id: String) -> Dictionary:
+	return DATA[id]
