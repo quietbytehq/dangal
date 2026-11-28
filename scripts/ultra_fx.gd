@@ -87,8 +87,11 @@ func _physics_process(delta: float) -> void:
 		_next_rock -= delta
 		if _next_rock <= 0.0:
 			_next_rock = 0.045
-			Vfx.spawn(get_parent(), "rock_burst", Vector2(_wave_x + randf_range(-20, 20), f.floor_y),
+			var rb := Vfx.spawn(get_parent(), "rock_burst", Vector2(_wave_x + randf_range(-20, 20), f.floor_y),
 					randf_range(0.7, 0.95), randf() < 0.5, 6, 1.4)
+			if rb and kind == "avalanche":
+				# Samandar's avalanche: the burst is snow and ice, not rock
+				rb.modulate = Color(0.9, 1.15, 1.7)
 			if fmod(t, 0.2) < 0.05:
 				f.quake.emit(10.0)
 		for prop in get_tree().get_nodes_in_group("props"):
@@ -148,4 +151,5 @@ func _draw() -> void:
 		draw_rect(Rect2(left, f.position.y - f.H * 0.72, f.H * 1.2, f.H * 0.5), trail)
 		draw_rect(Rect2(left, f.position.y - f.H * 0.55, f.H * 1.2, f.H * 0.16), Color(1.0, 0.95, 0.4, 0.35))
 	else:
-		draw_circle(Vector2(_wave_x, owner_fighter.floor_y - 30.0), 60.0, Color(1.0, 0.8, 0.3, 0.25))
+		var c := Color(0.75, 0.9, 1.0, 0.3) if kind == "avalanche" else Color(1.0, 0.8, 0.3, 0.25)
+		draw_circle(Vector2(_wave_x, owner_fighter.floor_y - 30.0), 60.0 if kind != "avalanche" else 85.0, c)

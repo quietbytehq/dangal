@@ -1,0 +1,138 @@
+{
+  "frame_width": 640,
+  "frame_height": 516,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 319,
+    "y": 511
+  },
+  "body_height": 338,
+  "animations": {
+    "idle": {
+      "file": "samandar_idle.png",
+      "frames": 48,
+      "columns": 8,
+      "rows": 6,
+      "loop": true
+    },
+    "walk": {
+      "file": "samandar_walk.png",
+      "frames": 56,
+      "columns": 8,
+      "rows": 7,
+      "loop": true
+    },
+    "jab": {
+      "file": "samandar_jab.png",
+      "frames": 19,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "samandar_roundhouse.png",
+      "frames": 43,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "samandar_crouch_punch.png",
+      "frames": 30,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "samandar_crouch_kick.png",
+      "frames": 45,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "jump": {
+      "file": "samandar_jump.png",
+      "frames": 29,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "samandar_jump_punch.png",
+      "frames": 24,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "samandar_jump_kick.png",
+      "frames": 43,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "special": {
+      "file": "samandar_special.png",
+      "frames": 42,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "samandar_kick_special.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "ultra": {
+      "file": "samandar_ultra.png",
+      "frames": 58,
+      "columns": 8,
+      "rows": 8,
+      "loop": false
+    },
+    "block": {
+      "file": "samandar_block.png",
+      "frames": 22,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "samandar_crouch_block.png",
+      "frames": 34,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "hit": {
+      "file": "samandar_hit.png",
+      "frames": 34,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "samandar_knockdown.png",
+      "frames": 30,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "victory": {
+      "file": "samandar_victory.png",
+      "frames": 53,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "intro": {
+      "file": "samandar_intro.png",
+      "frames": 93,
+      "columns": 8,
+      "rows": 12,
+      "loop": false
+    }
+  }
+}

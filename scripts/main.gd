@@ -29,6 +29,9 @@ const STAGES := [
 	{"name": "SHIRAZ PINK MOSQUE", "home": "rustam", "image": "res://assets/stage/iran_mosque.png", "music": "stage_iran",
 		"video": "res://assets/stage/iran_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_iran.ogg",
 		"props": [["copper_pot", 115.0], ["basket", 245.0], ["matka", 1165.0], ["copper_pot", 1045.0]]},
+	{"name": "KABUL KITE ROOFTOP", "home": "samandar", "image": "res://assets/stage/kabul_rooftop.png", "music": "stage_kabul",
+		"video": "res://assets/stage/kabul_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_kabul.ogg",
+		"props": [["matka", 112.0], ["basket", 242.0], ["crate", 1162.0], ["copper_pot", 1042.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE", "VERSUS", "OPTIONS", "HOW TO PLAY", "QUIT"]
@@ -1149,7 +1152,7 @@ func _draw_menu(t: float) -> void:
 
 
 ## Where each fighter's face sits in his call-out close-up (fractions of the image), for square tiles.
-const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32)}
+const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32), "samandar": Vector2(0.55, 0.3)}
 const SELECT_COLS := 2
 const TILE := 150.0
 
@@ -1308,7 +1311,8 @@ const PORTRAIT_FACING := {"rustam_callout": -1, "babasher_callout": -1,
 		"rustam_win": -1, "babasher_win": 1, "rustam_beaten": 1, "babasher_beaten": -1,
 		"tiago_callout": -1, "tiago_win": 1, "tiago_beaten": -1,
 		"meilin_callout": 1, "meilin_win": 1, "meilin_beaten": -1,
-		"jameel_callout": 1, "jameel_win": 1, "jameel_beaten": -1}
+		"jameel_callout": 1, "jameel_win": 1, "jameel_beaten": -1,
+		"samandar_callout": -1, "samandar_win": 1, "samandar_beaten": -1}
 
 
 ## True if the close-up must be mirrored so it faces `want` (-1 left, 1 right).

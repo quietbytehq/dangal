@@ -19,7 +19,7 @@ const HIT_TIME := 0.45
 const BLOCKSTUN := 0.22
 const CROUCH_POSE := 0.22     # where in the crouch-kick clip the crouch pose sits
 const GUARD_POSE := 0.45      # where in the block clips the guard is fully up
-const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48, "tiago": 0.45, "meilin": 0.6, "jameel": 0.5}   # where each victory clip hits its pose
+const VICTORY_HOLD := {"rustam": 0.52, "babasher": 0.48, "tiago": 0.45, "meilin": 0.6, "jameel": 0.5, "samandar": 0.6}   # where each victory clip hits its pose
 const METER_MAX := 100.0
 ## Close-range throws (Forward + Punch up close). Each fighter flings the opponent his own way:
 ## path = how the victim flies; grab/throw = this fighter's clips for the grab and the follow-through.
@@ -34,6 +34,8 @@ const THROWS := {
 			"fly": 0.85, "damage": 120, "quake": 8.0, "vfx": "fire_burst"},
 	"meilin": {"name": "DRAGON PALM TOSS", "path": "palm", "grab": "jab", "throw": "special",
 			"fly": 0.7, "damage": 120, "quake": 8.0, "vfx": "chi_orb"},
+	"samandar": {"name": "BUZKASHI FLING", "path": "fling", "grab": "jab", "throw": "roundhouse",
+			"fly": 0.85, "damage": 140, "quake": 12.0, "vfx": "rock_burst"},
 	"jameel": {"name": "DAGESTAN SPIKE", "path": "spike", "grab": "crouch_punch", "throw": "jab",
 			"fly": 0.85, "damage": 150, "quake": 16.0, "vfx": "rock_burst"},
 }
@@ -247,7 +249,7 @@ func _physics_process(delta: float) -> void:
 			_attacking()
 			_move_during_attack(delta)
 		"special":
-			if special_kind == "dash":
+			if special_kind in ["dash", "snare"]:
 				# Jaguar Shot: the special is a charging attack, not a projectile
 				_attacking()
 				_move_during_attack(delta)
@@ -496,7 +498,7 @@ func _start_special() -> void:
 	_hits_done = 0
 	_impact_done = false
 	_props_hit.clear()
-	if special_kind == "dash":
+	if special_kind in ["dash", "snare"]:
 		Sound.sfx("spin_whoosh", -2.0, 0.05)
 	_play("special", _length("special") / special_time)
 	say("special_shout")
@@ -595,6 +597,10 @@ func _throwing(_delta: float) -> void:
 			dx = d0 + H * 2.3 * u
 			lift = sin(u * PI) * H * 0.6
 			rot = facing * TAU * 1.5 * u
+		"fling":    # buzkashi: slung around and hurled far behind, spinning like the goat
+			dx = lerpf(d0, -H * 2.2, u)
+			lift = sin(u * PI) * H * 0.55
+			rot = -facing * TAU * 1.25 * u
 		"palm":     # blasted flat across the stage
 			dx = d0 + H * 2.8 * (1.0 - pow(1.0 - u, 2.0))
 			lift = sin(u * PI) * H * 0.3
@@ -652,7 +658,7 @@ func _update_tint() -> void:
 		_sprite.modulate = Color(2.2, 2.2, 2.2)
 	elif state in ["ultra", "ultra_wait"] and not special_spawned:
 		var pulse := 0.75 + 0.25 * sin(_time * 22.0)
-		var auras := {"beam": Color(0.55, 0.8, 1.6), "quake": Color(1.6, 1.15, 0.45), "rush": Color(0.75, 1.6, 0.6), "dragon": Color(1.7, 1.35, 0.4), "lion": Color(1.8, 1.4, 0.45)}
+		var auras := {"beam": Color(0.55, 0.8, 1.6), "quake": Color(1.6, 1.15, 0.45), "rush": Color(0.75, 1.6, 0.6), "dragon": Color(1.7, 1.35, 0.4), "lion": Color(1.8, 1.4, 0.45), "avalanche": Color(1.1, 1.4, 1.9)}
 		var aura: Color = auras.get(str(def.get("ultra", "beam")), Color(1.6, 1.15, 0.45))
 		_sprite.modulate = Color.WHITE.lerp(aura, pulse * 0.5)
 	else:

@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel"]
+const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar"]
 
 const DATA := {
 	"rustam": {
@@ -275,6 +275,63 @@ const DATA := {
 			"special": {"damage": 110, "active": Vector2(0.12, 0.55), "time": 1.0,
 				"move": 720.0, "box": Rect2(0.05, -0.70, 0.72, 0.55), "hitstun": 0.55,
 				"push": 340.0, "sfx": "kick", "vfx": "rock_burst"},
+		},
+	},
+	"samandar": {
+		"name": "SAMANDAR KHAN",
+		"from": "Kabul",
+		"country": "AFGHANISTAN",
+		"flag": "af",
+		"style": "Pashtun brawler",
+		"age": 38,
+		"height": "1.88 m",
+		"stats": {"POWER": 5, "SPEED": 3, "RANGE": 5, "DEFENSE": 3},
+		"fact": "Grew up flying kites on the rooftops of Kabul and riding in buzkashi matches. His patu shawl reaches further than his patience.",
+		"sprites": "res://assets/samandar",
+		"json": "samandar_sprites.json",
+		"voice": "samandar",
+		"health": 1060,
+		"walk_speed": 220.0,
+		"push_width": 0.27,
+		# Patu Snare: the shawl lashes out like a rope and yanks the opponent in
+		"special": "snare",
+		"special_name": "PATU SNARE",
+		"special_time": 1.1,
+		"special_release": 0.3,
+		"kick_special_name": "BUZKASHI CHARGE",
+		"ultra": "avalanche",
+		"ultra_name": "HINDU KUSH AVALANCHE",
+		"ultra_time": 3.6,
+		"ultra_release": 0.55,
+		"ultra_damage": 330,
+		"callout_text": "Salaam, friend. In Kabul we fight on the rooftops. Let us see if you can stand on mine.",
+		"fight_start_text": "Ya Allah!",
+		"tease_text": "Get up, friend. Next time, come for tea first. Then we fight again.",
+		"groan_text": "Wah... you are strong. My grandfather would have liked you.",
+		"attacks": {
+			# two quick straight punches
+			"jab": {"damage": 58, "active": Vector2(0.20, 0.55), "time": 0.55, "hits": 2,
+				"box": Rect2(0.10, -0.82, 0.60, 0.18), "hitstun": 0.34, "push": 140.0, "sfx": "punch"},
+			# high roundhouse, long tunic flaring
+			"roundhouse": {"damage": 110, "active": Vector2(0.30, 0.62), "time": 0.85,
+				"box": Rect2(0.10, -0.92, 0.72, 0.34), "hitstun": 0.48, "push": 290.0, "sfx": "kick"},
+			"crouch_punch": {"damage": 50, "active": Vector2(0.25, 0.60), "time": 0.50,
+				"box": Rect2(0.10, -0.50, 0.66, 0.20), "hitstun": 0.32, "push": 130.0, "sfx": "punch"},
+			# wide floor sweep
+			"crouch_kick": {"damage": 85, "active": Vector2(0.35, 0.72), "time": 0.75, "low": true,
+				"box": Rect2(0.05, -0.30, 0.80, 0.30), "hitstun": 0.42, "push": 190.0, "sfx": "kick"},
+			"jump_punch": {"damage": 78, "active": Vector2(0.30, 0.60), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.82, 0.58, 0.32), "hitstun": 0.42, "push": 170.0, "sfx": "punch"},
+			"jump_kick": {"damage": 92, "active": Vector2(0.35, 0.68), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.75, 0.72, 0.34), "hitstun": 0.45, "push": 220.0, "sfx": "kick"},
+			# Buzkashi Charge: running rush into a galloping double stomp kick
+			"kick_special": {"damage": 62, "active": Vector2(0.30, 0.85), "time": 1.1, "hits": 2,
+				"move": 520.0, "box": Rect2(0.0, -0.85, 0.85, 0.65), "hitstun": 0.45,
+				"push": 260.0, "sfx": "kick", "vfx": "rock_burst"},
+			# Patu Snare (the special): long shawl lash; a negative push drags the opponent in
+			"special": {"damage": 90, "active": Vector2(0.30, 0.58), "time": 1.0,
+				"move": 0.0, "box": Rect2(0.15, -0.85, 1.55, 0.35), "hitstun": 0.65,
+				"push": -420.0, "sfx": "kick", "vfx": "fire_burst"},
 		},
 	},
 }
