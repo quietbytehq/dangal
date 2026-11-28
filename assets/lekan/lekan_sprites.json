@@ -1,0 +1,138 @@
+{
+  "frame_width": 640,
+  "frame_height": 515,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 316,
+    "y": 506
+  },
+  "body_height": 332,
+  "animations": {
+    "idle": {
+      "file": "lekan_idle.png",
+      "frames": 92,
+      "columns": 8,
+      "rows": 12,
+      "loop": true
+    },
+    "walk": {
+      "file": "lekan_walk.png",
+      "frames": 94,
+      "columns": 8,
+      "rows": 12,
+      "loop": true
+    },
+    "jab": {
+      "file": "lekan_jab.png",
+      "frames": 33,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "lekan_roundhouse.png",
+      "frames": 43,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "lekan_crouch_punch.png",
+      "frames": 30,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "lekan_crouch_kick.png",
+      "frames": 41,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "jump": {
+      "file": "lekan_jump.png",
+      "frames": 18,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "lekan_jump_punch.png",
+      "frames": 21,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "lekan_jump_kick.png",
+      "frames": 35,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "special": {
+      "file": "lekan_special.png",
+      "frames": 25,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "lekan_kick_special.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "ultra": {
+      "file": "lekan_ultra.png",
+      "frames": 58,
+      "columns": 8,
+      "rows": 8,
+      "loop": false
+    },
+    "block": {
+      "file": "lekan_block.png",
+      "frames": 17,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "lekan_crouch_block.png",
+      "frames": 32,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "hit": {
+      "file": "lekan_hit.png",
+      "frames": 39,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "lekan_knockdown.png",
+      "frames": 23,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "victory": {
+      "file": "lekan_victory.png",
+      "frames": 90,
+      "columns": 8,
+      "rows": 12,
+      "loop": false
+    },
+    "intro": {
+      "file": "lekan_intro.png",
+      "frames": 95,
+      "columns": 8,
+      "rows": 12,
+      "loop": false
+    }
+  }
+}

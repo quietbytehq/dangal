@@ -44,6 +44,9 @@ const STAGES := [
 	{"name": "TEXAS RANCH, AMARILLO", "home": "buck", "image": "res://assets/stage/texas_ranch.png", "music": "stage_texas",
 		"video": "res://assets/stage/texas_ranch_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_ranch.ogg",
 		"props": [["crate", 115.0], ["firewood", 245.0], ["crate", 1160.0], ["basket", 1045.0]]},
+	{"name": "MAASAI VILLAGE, NAROK", "home": "lekan", "image": "res://assets/stage/maasai_village.png", "music": "stage_kenya",
+		"video": "res://assets/stage/maasai_village_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_maasai.ogg",
+		"props": [["basket", 115.0], ["firewood", 245.0], ["basket", 1160.0], ["firewood", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE", "VERSUS", "OPTIONS", "HOW TO PLAY", "QUIT"]
@@ -1209,7 +1212,7 @@ func _draw_menu(t: float) -> void:
 
 
 ## Where each fighter's face sits in his call-out close-up (fractions of the image), for square tiles.
-const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32), "samandar": Vector2(0.55, 0.3), "finn": Vector2(0.58, 0.32), "laxman": Vector2(0.55, 0.28), "buck": Vector2(0.5, 0.3)}
+const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32), "samandar": Vector2(0.55, 0.3), "finn": Vector2(0.58, 0.32), "laxman": Vector2(0.55, 0.28), "buck": Vector2(0.5, 0.3), "lekan": Vector2(0.5, 0.3)}
 const SELECT_COLS := 5
 const TILE := 86.0
 
@@ -1328,10 +1331,10 @@ func _draw_select(font: Font) -> void:
 ## Where each fighter's home is (longitude, latitude), for the world map.
 const GEO := {"rustam": Vector2(51.39, 35.69), "babasher": Vector2(74.65, 36.32), "tiago": Vector2(-43.2, -22.9),
 		"meilin": Vector2(104.07, 30.67), "jameel": Vector2(47.5, 42.98), "samandar": Vector2(69.17, 34.53),
-		"finn": Vector2(-9.6, 53.0), "laxman": Vector2(83.0, 25.32), "buck": Vector2(-101.83, 35.22)}
+		"finn": Vector2(-9.6, 53.0), "laxman": Vector2(83.0, 25.32), "buck": Vector2(-101.83, 35.22), "lekan": Vector2(35.87, -1.08)}
 ## Which side of the dot the flag goes, so neighbours (Kabul, Hunza, Tehran) don't overlap.
 const GEO_LABEL := {"rustam": Vector2(-1, 1), "babasher": Vector2(1, -1), "tiago": Vector2(1, 0),
-		"meilin": Vector2(1, 0), "jameel": Vector2(-1, -1), "samandar": Vector2(0, 1), "finn": Vector2(-1, -1), "laxman": Vector2(1, 1), "buck": Vector2(1, 1)}
+		"meilin": Vector2(1, 0), "jameel": Vector2(-1, -1), "samandar": Vector2(0, 1), "finn": Vector2(-1, -1), "laxman": Vector2(1, 1), "buck": Vector2(1, 1), "lekan": Vector2(-1, 1)}
 ## world.png covers longitude -125..145 at 1280 px wide (equirectangular), latitude 74 at the top.
 const MAP_LON0 := -125.0
 const MAP_PX := 1280.0 / 270.0

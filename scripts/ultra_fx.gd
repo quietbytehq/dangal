@@ -5,6 +5,7 @@ extends Node2D
 ##  - "quake": Baba Sher's MOUNTAIN BREAKER, rock eruptions sweeping the whole floor.
 ##  - "dragon": Mei Lin's DRAGON DANCE, the beam's golden twin: a dragon of light across the screen.
 ##  - "rush":  Tiago's RIO SUBMISSION, a green-energy charge across the floor that slams into the opponent.
+##  - "tembo": Lekan's TEMBO CHARGE, the rush in ivory-gold: an elephant spirit charges with him.
 ##  - "lion":  Jameel's LION OF DAGESTAN, the rush in gold: he storms in and finishes with a flying knee.
 ## Both can be blocked for chip damage (the quake only crouching); jumping dodges the quake.
 
@@ -48,7 +49,7 @@ func _ready() -> void:
 			elif kind == "banshee":
 				_beam.modulate = Color(0.55, 1.9, 0.75)
 		Vfx.spawn(self, "fire_burst", Vector2(_x0, _y), 0.9)
-	elif kind in ["rush", "lion"]:
+	elif kind in ["rush", "lion", "tembo"]:
 		Sound.sfx("spin_whoosh", 2.0, 0.0)
 	else:
 		_wave_x = f.position.x + _dir * f.H * 0.4
@@ -84,7 +85,7 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		if t >= BEAM_TIME:
 			queue_free()
-	elif kind in ["rush", "lion"]:
+	elif kind in ["rush", "lion", "tembo"]:
 		_rush(delta, f, o)
 	else:
 		_wave_x += _dir * QUAKE_SPEED * delta
@@ -127,7 +128,7 @@ func _rush(delta: float, f: Fighter, o: Fighter) -> void:
 				# second, green burst (one-shot effect; looping ones like chi_orb never free themselves)
 				var green := Vfx.spawn(get_parent(), "fire_burst", contact + Vector2(_dir * 30.0, -20.0), 1.0, _dir < 0, 6)
 				if green:
-					green.modulate = Color(1.8, 1.35, 0.35) if kind == "lion" else Color(0.5, 1.6, 0.45)
+					green.modulate = Color(1.8, 1.35, 0.35) if kind == "lion" else (Color(1.9, 1.6, 0.7) if kind == "tembo" else Color(0.5, 1.6, 0.45))
 				Sound.sfx("ground_pound", 3.0, 0.0)
 			f.quake.emit(22.0)
 		for prop in get_tree().get_nodes_in_group("props"):
@@ -148,13 +149,13 @@ func _draw() -> void:
 		var hot := Color(1.0, 0.95, 0.7) if kind == "dragon" else (Color(0.85, 1.0, 0.9) if kind == "banshee" else Color(0.85, 0.95, 1.0))
 		draw_rect(r, Color(glow, 0.18 * a))
 		draw_rect(core, Color(hot, 0.55 * a))
-	elif kind in ["rush", "lion"]:
+	elif kind in ["rush", "lion", "tembo"]:
 		# green-gold (or all-gold) streak trailing behind the charge
 		if _hit or t >= RUSH_TIME:
 			return
 		var f := owner_fighter
 		var left: float = f.position.x - f.H * 1.2 if _dir > 0 else f.position.x
-		var trail := Color(1.0, 0.7, 0.2, 0.24) if kind == "lion" else Color(0.35, 1.0, 0.35, 0.22)
+		var trail := Color(1.0, 0.7, 0.2, 0.24) if kind in ["lion", "tembo"] else Color(0.35, 1.0, 0.35, 0.22)
 		draw_rect(Rect2(left, f.position.y - f.H * 0.72, f.H * 1.2, f.H * 0.5), trail)
 		draw_rect(Rect2(left, f.position.y - f.H * 0.55, f.H * 1.2, f.H * 0.16), Color(1.0, 0.95, 0.4, 0.35))
 	else:

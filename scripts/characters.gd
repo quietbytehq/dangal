@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar", "finn", "laxman", "buck"]
+const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar", "finn", "laxman", "buck", "lekan"]
 
 const DATA := {
 	"rustam": {
@@ -491,6 +491,56 @@ const DATA := {
 			"special": {"damage": 95, "active": Vector2(0.35, 0.70), "time": 1.2,
 				"move": 0.0, "box": Rect2(0.15, -0.85, 1.70, 0.40), "hitstun": 0.7,
 				"push": -460.0, "sfx": "kick", "vfx": "fire_burst"},
+		},
+	},
+	"lekan": {
+		"name": "LEKAN OLE SANKALE",
+		"from": "Narok, Maasai Mara",
+		"country": "KENYA",
+		"flag": "ke",
+		"style": "Maasai rungu warrior",
+		"age": 29,
+		"height": "1.96 m",
+		"stats": {"POWER": 4, "SPEED": 4, "RANGE": 4, "DEFENSE": 3},
+		"fact": "A Maasai warrior from the plains of the Mara who herds cattle by day and jumps higher than anyone in the adumu dance. Walks with the elephants and fights with a carved rungu staff.",
+		"sprites": "res://assets/lekan",
+		"json": "lekan_sprites.json",
+		"voice": "lekan",
+		"health": 1050,
+		"walk_speed": 225.0,
+		"push_width": 0.27,
+		# Rungu Quake: leaps and smashes the staff down, sending a golden shockwave along the ground
+		"special": "shockwave",
+		"special_name": "RUNGU QUAKE",
+		"special_time": 1.2,
+		"special_release": 0.38,
+		"kick_special_name": "SAVANNAH WHIRLWIND",
+		"ultra": "tembo",
+		"ultra_name": "TEMBO CHARGE",
+		"ultra_time": 3.6,
+		"ultra_release": 0.55,
+		"ultra_damage": 340,
+		"callout_text": "Supa! Mimi ni shujaa wa Maasai. Leo utaona nguvu ya tembo!",
+		"fight_start_text": "Twende!",
+		"tease_text": "Pole sana, rafiki. Hata ndama wangu anapigana kuliko wewe. Ashe oleng!",
+		"groan_text": "Hongera... wewe ni shujaa. Ashe.",
+		"attacks": {
+			"jab": {"damage": 58, "active": Vector2(0.20, 0.58), "time": 0.52, "hits": 2,
+				"box": Rect2(0.10, -0.82, 0.62, 0.18), "hitstun": 0.34, "push": 150.0, "sfx": "punch"},
+			"roundhouse": {"damage": 110, "active": Vector2(0.30, 0.62), "time": 0.85,
+				"box": Rect2(0.10, -0.90, 0.74, 0.34), "hitstun": 0.48, "push": 295.0, "sfx": "kick"},
+			"crouch_punch": {"damage": 52, "active": Vector2(0.25, 0.60), "time": 0.52,
+				"box": Rect2(0.10, -0.50, 0.70, 0.20), "hitstun": 0.32, "push": 135.0, "sfx": "punch"},
+			"crouch_kick": {"damage": 85, "active": Vector2(0.35, 0.72), "time": 0.78, "low": true,
+				"box": Rect2(0.05, -0.30, 0.82, 0.30), "hitstun": 0.42, "push": 195.0, "sfx": "kick"},
+			"jump_punch": {"damage": 80, "active": Vector2(0.30, 0.60), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.82, 0.60, 0.32), "hitstun": 0.42, "push": 170.0, "sfx": "punch"},
+			"jump_kick": {"damage": 92, "active": Vector2(0.35, 0.68), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.75, 0.74, 0.34), "hitstun": 0.45, "push": 225.0, "sfx": "kick"},
+			# Savannah Whirlwind: the rungu spun in a wide circle, three hits
+			"kick_special": {"damage": 45, "active": Vector2(0.20, 0.85), "time": 1.1, "hits": 3,
+				"move": 320.0, "box": Rect2(0.0, -0.90, 0.90, 0.65), "hitstun": 0.45,
+				"push": 250.0, "sfx": "kick", "vfx": "rock_burst"},
 		},
 	},
 }
