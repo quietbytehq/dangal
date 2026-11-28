@@ -38,6 +38,9 @@ const STAGES := [
 	{"name": "WILD ATLANTIC COAST", "home": "finn", "image": "res://assets/stage/irish_beach.png", "music": "stage_ireland",
 		"video": "res://assets/stage/irish_beach_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_beach.ogg",
 		"props": [["basket", 115.0], ["crate", 245.0], ["firewood", 1160.0], ["basket", 1045.0]]},
+	{"name": "GANGA GHAT, VARANASI", "home": "laxman", "image": "res://assets/stage/ganga_ghat.png", "music": "stage_india",
+		"video": "res://assets/stage/ganga_ghat_loop.ogv", "crowd": "res://assets/audio/sfx/crowd_ganga.ogg",
+		"props": [["matka", 115.0], ["basket", 245.0], ["copper_pot", 1160.0], ["matka", 1045.0]]},
 ]
 const LEVELS := ["EASY", "NORMAL", "HARD"]
 const TITLE_ITEMS := ["ARCADE", "VERSUS", "OPTIONS", "HOW TO PLAY", "QUIT"]
@@ -1203,7 +1206,7 @@ func _draw_menu(t: float) -> void:
 
 
 ## Where each fighter's face sits in his call-out close-up (fractions of the image), for square tiles.
-const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32), "samandar": Vector2(0.55, 0.3), "finn": Vector2(0.58, 0.32)}
+const FACE_FOCUS := {"rustam": Vector2(0.6, 0.38), "babasher": Vector2(0.6, 0.38), "tiago": Vector2(0.62, 0.3), "meilin": Vector2(0.4, 0.3), "jameel": Vector2(0.5, 0.32), "samandar": Vector2(0.55, 0.3), "finn": Vector2(0.58, 0.32), "laxman": Vector2(0.55, 0.28)}
 const SELECT_COLS := 4
 const TILE := 104.0
 
@@ -1322,10 +1325,10 @@ func _draw_select(font: Font) -> void:
 ## Where each fighter's home is (longitude, latitude), for the world map.
 const GEO := {"rustam": Vector2(51.39, 35.69), "babasher": Vector2(74.65, 36.32), "tiago": Vector2(-43.2, -22.9),
 		"meilin": Vector2(104.07, 30.67), "jameel": Vector2(47.5, 42.98), "samandar": Vector2(69.17, 34.53),
-		"finn": Vector2(-9.6, 53.0)}
+		"finn": Vector2(-9.6, 53.0), "laxman": Vector2(83.0, 25.32)}
 ## Which side of the dot the flag goes, so neighbours (Kabul, Hunza, Tehran) don't overlap.
 const GEO_LABEL := {"rustam": Vector2(-1, 1), "babasher": Vector2(1, -1), "tiago": Vector2(1, 0),
-		"meilin": Vector2(1, 0), "jameel": Vector2(-1, -1), "samandar": Vector2(0, 1), "finn": Vector2(-1, -1)}
+		"meilin": Vector2(1, 0), "jameel": Vector2(-1, -1), "samandar": Vector2(0, 1), "finn": Vector2(-1, -1), "laxman": Vector2(1, 1)}
 ## world.png covers longitude -85..135 at 1280 px wide (equirectangular), latitude 74 at the top.
 const MAP_LON0 := -85.0
 const MAP_PX := 1280.0 / 220.0

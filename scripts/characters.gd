@@ -8,7 +8,7 @@ extends RefCounted
 ## Optional: "low" (must be blocked crouching), "air", "move" (px/s forward while active),
 ## "hits" (number of hits while active), "quake" (screen shake), "vfx" (effect on impact).
 
-const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar", "finn"]
+const ROSTER := ["rustam", "babasher", "tiago", "meilin", "jameel", "samandar", "finn", "laxman"]
 
 const DATA := {
 	"rustam": {
@@ -389,8 +389,54 @@ const DATA := {
 				"push": 360.0, "sfx": "punch", "vfx": "fire_burst"},
 		},
 	},
+	"laxman": {
+		"name": "LAXMAN RAO",
+		"from": "Varanasi",
+		"country": "INDIA",
+		"flag": "in",
+		"style": "Kalari coder",
+		"age": 27,
+		"height": "1.78 m",
+		"stats": {"POWER": 3, "SPEED": 5, "RANGE": 4, "DEFENSE": 3},
+		"fact": "Grew up on the ghats of Varanasi, learned kalaripayattu from his grandmother and now writes code in a Bengaluru tech park. Never takes off his sunglasses, not even in meetings.",
+		"sprites": "res://assets/laxman",
+		"json": "laxman_sprites.json",
+		"voice": "laxman",
+		"health": 1000,
+		"walk_speed": 240.0,
+		"push_width": 0.27,
+		# Blue Screen: a glowing orb of binary code fired from both palms
+		"special": "data",
+		"special_name": "BLUE SCREEN",
+		"special_time": 1.0,
+		"special_release": 0.3,
+		"kick_special_name": "CTRL ALT DELETE",
+		"ultra": "crash",
+		"ultra_name": "SYSTEM CRASH",
+		"ultra_time": 3.4,
+		"ultra_release": 0.6,
+		"ultra_damage": 315,
+		"callout_text": "Relax, yaar. This will only take five minutes. Like every meeting.",
+		"fight_start_text": "Chalo, let's deploy!",
+		"tease_text": "Arre yaar, you crashed faster than our servers on a Monday. Bas, chai break!",
+		"groan_text": "Bas... I need to reboot. Somebody bring me chai, yaar.",
+		"attacks": {
+			"jab": {"damage": 55, "active": Vector2(0.18, 0.55), "time": 0.5, "hits": 2,
+				"box": Rect2(0.10, -0.82, 0.60, 0.18), "hitstun": 0.34, "push": 150.0, "sfx": "punch"},
+			"roundhouse": {"damage": 105, "active": Vector2(0.30, 0.62), "time": 0.8,
+				"box": Rect2(0.10, -0.92, 0.72, 0.34), "hitstun": 0.48, "push": 290.0, "sfx": "kick"},
+			"crouch_punch": {"damage": 50, "active": Vector2(0.25, 0.60), "time": 0.5,
+				"box": Rect2(0.10, -0.50, 0.66, 0.20), "hitstun": 0.32, "push": 130.0, "sfx": "punch"},
+			"crouch_kick": {"damage": 82, "active": Vector2(0.35, 0.72), "time": 0.75, "low": true,
+				"box": Rect2(0.05, -0.30, 0.80, 0.30), "hitstun": 0.42, "push": 190.0, "sfx": "kick"},
+			"jump_punch": {"damage": 78, "active": Vector2(0.30, 0.60), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.82, 0.58, 0.32), "hitstun": 0.42, "push": 170.0, "sfx": "punch"},
+			"jump_kick": {"damage": 90, "active": Vector2(0.35, 0.68), "time": 1.0, "air": true,
+				"box": Rect2(0.05, -0.75, 0.72, 0.34), "hitstun": 0.45, "push": 220.0, "sfx": "kick"},
+			# Ctrl Alt Delete: three spinning kicks, one per key
+			"kick_special": {"damage": 45, "active": Vector2(0.20, 0.85), "time": 1.1, "hits": 3,
+				"move": 380.0, "box": Rect2(0.0, -0.90, 0.85, 0.60), "hitstun": 0.45,
+				"push": 240.0, "sfx": "kick", "vfx": "fire_burst"},
+		},
+	},
 }
-
-
-static func get_def(id: String) -> Dictionary:
-	return DATA[id]

@@ -21,6 +21,8 @@ func _ready() -> void:
 		_orb = Vfx.spawn(self, "chi_orb", Vector2.ZERO, 0.42, direction < 0, 4)
 		if _orb and kind == "phoenix":
 			_orb.modulate = Color(1.8, 0.75, 0.3)
+		elif _orb and kind == "data":
+			_orb.modulate = Color(0.45, 1.2, 2.0)
 
 
 func _speed() -> float:

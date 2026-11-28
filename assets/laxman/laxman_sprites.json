@@ -1,0 +1,138 @@
+{
+  "frame_width": 640,
+  "frame_height": 499,
+  "fps": 12,
+  "feet_anchor": {
+    "x": 317,
+    "y": 490
+  },
+  "body_height": 332,
+  "animations": {
+    "idle": {
+      "file": "laxman_idle.png",
+      "frames": 90,
+      "columns": 8,
+      "rows": 12,
+      "loop": true
+    },
+    "walk": {
+      "file": "laxman_walk.png",
+      "frames": 89,
+      "columns": 8,
+      "rows": 12,
+      "loop": true
+    },
+    "jab": {
+      "file": "laxman_jab.png",
+      "frames": 32,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "roundhouse": {
+      "file": "laxman_roundhouse.png",
+      "frames": 37,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "crouch_punch": {
+      "file": "laxman_crouch_punch.png",
+      "frames": 34,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "crouch_kick": {
+      "file": "laxman_crouch_kick.png",
+      "frames": 25,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "jump": {
+      "file": "laxman_jump.png",
+      "frames": 20,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_punch": {
+      "file": "laxman_jump_punch.png",
+      "frames": 21,
+      "columns": 8,
+      "rows": 3,
+      "loop": false
+    },
+    "jump_kick": {
+      "file": "laxman_jump_kick.png",
+      "frames": 40,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "special": {
+      "file": "laxman_special.png",
+      "frames": 32,
+      "columns": 8,
+      "rows": 4,
+      "loop": false
+    },
+    "kick_special": {
+      "file": "laxman_kick_special.png",
+      "frames": 42,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "ultra": {
+      "file": "laxman_ultra.png",
+      "frames": 42,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "block": {
+      "file": "laxman_block.png",
+      "frames": 36,
+      "columns": 8,
+      "rows": 5,
+      "loop": false
+    },
+    "crouch_block": {
+      "file": "laxman_crouch_block.png",
+      "frames": 46,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "hit": {
+      "file": "laxman_hit.png",
+      "frames": 52,
+      "columns": 8,
+      "rows": 7,
+      "loop": false
+    },
+    "knockdown": {
+      "file": "laxman_knockdown.png",
+      "frames": 41,
+      "columns": 8,
+      "rows": 6,
+      "loop": false
+    },
+    "victory": {
+      "file": "laxman_victory.png",
+      "frames": 89,
+      "columns": 8,
+      "rows": 12,
+      "loop": false
+    },
+    "intro": {
+      "file": "laxman_intro.png",
+      "frames": 96,
+      "columns": 8,
+      "rows": 12,
+      "loop": false
+    }
+  }
+}
